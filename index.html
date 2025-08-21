@@ -7,6 +7,7 @@
     <meta name="theme-color" content="#ff6b6b">
     <meta name="description" content="A comprehensive period tracking app with cycle phase information">
     <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -38,6 +39,7 @@
             line-height: 1.6;
             padding: 0;
             margin: 0;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         
         .container {
@@ -55,6 +57,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            padding-top: calc(1rem + env(safe-area-inset-top));
         }
         
         .app-title {
@@ -539,6 +542,29 @@
             color: var(--text);
         }
         
+        /* Install button in header */
+        .install-button {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.3s ease;
+        }
+        
+        .install-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
         /* Footer styles */
         .footer {
             text-align: center;
@@ -646,6 +672,12 @@
             .phase-tips {
                 padding: 0.6rem;
             }
+            
+            .install-button {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.7rem;
+                right: 0.5rem;
+            }
         }
         
         /* Symptom tracking */
@@ -684,6 +716,47 @@
         .day.period, .day.fertile {
             animation: pulse 2s infinite;
         }
+        
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; bottom: 0; }
+            to { opacity: 1; bottom: 20px; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; bottom: 20px; }
+            to { opacity: 0; bottom: 0; }
+        }
+        
+        /* Offline indicator */
+        .offline-indicator {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--danger);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            z-index: 1001;
+            font-size: 0.8rem;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -692,7 +765,12 @@
             <i class="fas fa-heart"></i>
             <h1>CycleSync Period Tracker</h1>
         </div>
+        <button id="install-button" class="install-button">
+            <i class="fas fa-download"></i> Install
+        </button>
     </header>
+    
+    <div class="offline-indicator" id="offline-indicator">Offline Mode</div>
     
     <div class="container">
         <div class="tabs">
@@ -829,6 +907,8 @@
             const dismissInstallBtn = document.getElementById('dismiss-install');
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');
+            const installButton = document.getElementById('install-button');
+            const offlineIndicator = document.getElementById('offline-indicator');
             
             // Modal elements
             const addDaysModal = document.getElementById('add-days-modal');
@@ -936,6 +1016,19 @@
                 option.addEventListener('click', function() {
                     this.classList.toggle('selected');
                     // In a real app, you would save this to localStorage
+                    const today = new Date().toDateString();
+                    if (!periodData.symptoms[today]) {
+                        periodData.symptoms[today] = [];
+                    }
+                    
+                    const symptom = this.textContent;
+                    if (periodData.symptoms[today].includes(symptom)) {
+                        periodData.symptoms[today] = periodData.symptoms[today].filter(s => s !== symptom);
+                    } else {
+                        periodData.symptoms[today].push(symptom);
+                    }
+                    
+                    localStorage.setItem('periodData', JSON.stringify(periodData));
                 });
             });
             
@@ -945,6 +1038,9 @@
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
+                
+                // Show install button in header
+                installButton.style.display = 'flex';
                 
                 // Only show install prompt if not already installed and not dismissed
                 if (!localStorage.getItem('installPromptDismissed')) {
@@ -959,6 +1055,20 @@
                     if (outcome === 'accepted') {
                         console.log('User accepted the install prompt');
                         installPrompt.classList.remove('show');
+                        installButton.style.display = 'none';
+                        localStorage.setItem('installPromptDismissed', 'true');
+                    }
+                    deferredPrompt = null;
+                }
+            });
+            
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                        installButton.style.display = 'none';
                         localStorage.setItem('installPromptDismissed', 'true');
                     }
                     deferredPrompt = null;
@@ -974,9 +1084,16 @@
             window.addEventListener('appinstalled', () => {
                 console.log('PWA was installed');
                 installPrompt.classList.remove('show');
+                installButton.style.display = 'none';
                 localStorage.setItem('installPromptDismissed', 'true');
                 deferredPrompt = null;
             });
+            
+            // Check if running in standalone mode (already installed)
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                installButton.style.display = 'none';
+                installPrompt.classList.remove('show');
+            }
             
             // Service Worker Registration
             if ('serviceWorker' in navigator) {
@@ -990,6 +1107,17 @@
                     });
                 });
             }
+            
+            // Online/Offline detection
+            window.addEventListener('online', () => {
+                offlineIndicator.style.display = 'none';
+                showNotification('Back online');
+            });
+            
+            window.addEventListener('offline', () => {
+                offlineIndicator.style.display = 'block';
+                showNotification('You are offline');
+            });
             
             // Functions
             function setupTabNavigation() {
@@ -1420,18 +1548,8 @@
             function showNotification(message) {
                 // Create notification element
                 const notification = document.createElement('div');
+                notification.classList.add('notification');
                 notification.textContent = message;
-                notification.style.position = 'fixed';
-                notification.style.bottom = '20px';
-                notification.style.left = '50%';
-                notification.style.transform = 'translateX(-50%)';
-                notification.style.backgroundColor = 'var(--primary)';
-                notification.style.color = 'white';
-                notification.style.padding = '12px 20px';
-                notification.style.borderRadius = '8px';
-                notification.style.zIndex = '1000';
-                notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                notification.style.animation = 'fadeIn 0.3s, fadeOut 0.3s 2.7s';
                 
                 document.body.appendChild(notification);
                 
