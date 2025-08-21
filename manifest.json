@@ -2,21 +2,44 @@
   "name": "Period Tracker",
   "short_name": "PeriodTracker",
   "description": "A comprehensive period tracking app with cycle phase information",
-  "start_url": "/",
+  "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ff6b6b",
   "theme_color": "#ff6b6b",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "images/icon.png",
+      "src": "images/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "images/icon.png",
+      "src": "images/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Period",
+      "short_name": "Log",
+      "description": "Quickly log your current period",
+      "url": "/index.html#log"
+    },
+    {
+      "name": "View Cycle",
+      "short_name": "Cycle",
+      "description": "Check your current cycle phase",
+      "url": "/index.html#cycle"
     }
   ]
 }
