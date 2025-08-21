@@ -2,7 +2,9 @@ const CACHE_NAME = 'period-tracker-v1';
 const urlsToCache = [
   '/',
   '/styles/main.css',
-  '/script/main.js'
+  '/script/main.js',
+    '/index.html',
+
 ];
 
 self.addEventListener('install', event => {
