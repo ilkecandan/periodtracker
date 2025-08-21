@@ -119,7 +119,7 @@
         }
         
         .day.period {
-            background-color: var(--primary-light);
+            background-color: var(--primary);
             color: white;
             font-weight: bold;
         }
@@ -406,6 +406,36 @@
             width: 100%;
         }
         
+        .install-prompt-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text);
+        }
+        
+        /* Footer styles */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
         /* Mobile optimizations */
         @media (max-width: 480px) {
             .actions {
@@ -430,6 +460,13 @@
                 width: 14px;
                 height: 14px;
                 font-size: 0.6rem;
+            }
+            
+            .install-prompt {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
             }
         }
     </style>
@@ -462,6 +499,7 @@
             <p id="cycle-length">Average cycle: Calculating...</p>
             <p id="period-length">Average period: Calculating...</p>
             <p id="next-period">Next period expected: Calculating...</p>
+            <p id="fertile-window">Fertile window: Calculating...</p>
         </div>
         
         <div class="cycle-info">
@@ -469,6 +507,11 @@
             <div id="phases-container">
                 <!-- Cycle phases will be generated here -->
             </div>
+        </div>
+        
+        <div class="footer">
+            <p>Support this project: <a href="https://buymeacoffee.com/ilkecandan" target="_blank">Buy Me a Coffee</a></p>
+            <p>Visit us: <a href="https://tempestlabs.space" target="_blank">tempestlabs.space</a></p>
         </div>
     </div>
     
@@ -481,7 +524,7 @@
             </div>
             <div class="form-group">
                 <label for="days-count">How many days to add from selected date?</label>
-                <input type="number" id="days-count" min="1" max="10" value="1">
+                <input type="number" id="days-count" min="1" max="10" value="5">
             </div>
             <div class="modal-actions">
                 <button class="secondary" id="cancel-add">Cancel</button>
@@ -504,6 +547,7 @@
     </div>
     
     <div class="install-prompt" id="install-prompt">
+        <button class="install-prompt-close" id="dismiss-install">&times;</button>
         <p>Install this app for a better experience</p>
         <button id="install-btn">Install</button>
     </div>
@@ -531,9 +575,11 @@
             const cycleLengthEl = document.getElementById('cycle-length');
             const periodLengthEl = document.getElementById('period-length');
             const nextPeriodEl = document.getElementById('next-period');
+            const fertileWindowEl = document.getElementById('fertile-window');
             const phasesContainer = document.getElementById('phases-container');
             const installPrompt = document.getElementById('install-prompt');
             const installBtn = document.getElementById('install-btn');
+            const dismissInstallBtn = document.getElementById('dismiss-install');
             
             // Modal elements
             const addDaysModal = document.getElementById('add-days-modal');
@@ -640,7 +686,11 @@
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                installPrompt.classList.add('show');
+                
+                // Only show install prompt if not already installed and not dismissed
+                if (!localStorage.getItem('installPromptDismissed')) {
+                    installPrompt.classList.add('show');
+                }
             });
             
             installBtn.addEventListener('click', async () => {
@@ -648,10 +698,25 @@
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
                     if (outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
                         installPrompt.classList.remove('show');
+                        localStorage.setItem('installPromptDismissed', 'true');
                     }
                     deferredPrompt = null;
                 }
+            });
+            
+            dismissInstallBtn.addEventListener('click', () => {
+                installPrompt.classList.remove('show');
+                localStorage.setItem('installPromptDismissed', 'true');
+            });
+            
+            // Check if app is already installed
+            window.addEventListener('appinstalled', () => {
+                console.log('PWA was installed');
+                installPrompt.classList.remove('show');
+                localStorage.setItem('installPromptDismissed', 'true');
+                deferredPrompt = null;
             });
             
             // Service Worker Registration
@@ -745,6 +810,9 @@
                         const phase = getCyclePhase(dayDate);
                         if (phase) {
                             dayEl.classList.add(phase);
+                            
+                            // Add tooltip for phase
+                            dayEl.title = getPhaseName(phase);
                         }
                     }
                     
@@ -764,7 +832,7 @@
                 // Check if already exists
                 if (!periodData.periods.includes(dateString)) {
                     periodData.periods.push(dateString);
-                    periodData.periods.sort();
+                    periodData.periods.sort((a, b) => new Date(a) - new Date(b));
                     localStorage.setItem('periodData', JSON.stringify(periodData));
                 }
             }
@@ -796,12 +864,22 @@
                     
                     nextPeriodEl.textContent = `Next period expected: ${nextPeriod.toLocaleDateString()}`;
                     
+                    // Calculate fertile window (typically days 10-17 of cycle)
+                    const fertileStart = new Date(lastPeriod);
+                    fertileStart.setDate(lastPeriod.getDate() + 10);
+                    
+                    const fertileEnd = new Date(lastPeriod);
+                    fertileEnd.setDate(lastPeriod.getDate() + 17);
+                    
+                    fertileWindowEl.textContent = `Fertile window: ${fertileStart.toLocaleDateString()} - ${fertileEnd.toLocaleDateString()}`;
+                    
                     // Store cycle lengths for future predictions
                     periodData.cycleLengths = cycles;
                     localStorage.setItem('periodData', JSON.stringify(periodData));
                 } else {
                     cycleLengthEl.textContent = 'Average cycle: Not enough data';
                     nextPeriodEl.textContent = 'Next period expected: Not enough data';
+                    fertileWindowEl.textContent = 'Fertile window: Not enough data';
                 }
                 
                 // Calculate period length (assuming consecutive days are one period)
@@ -852,11 +930,21 @@
                 // Determine phase based on days since last period
                 if (daysSince < 0) return null; // Before last period
                 if (daysSince < 5) return 'period'; // Period phase (first 5 days)
-                if (daysSince < 13) return 'follicular'; // Follicular phase (days 5-12)
-                if (daysSince < 16) return 'ovulation'; // Ovulation phase (days 13-15)
-                if (daysSince < avgCycle) return 'luteal'; // Luteal phase (days 16 until next period)
+                if (daysSince < 10) return 'follicular'; // Follicular phase (days 5-9)
+                if (daysSince < 17) return 'ovulation'; // Ovulation phase (days 10-16)
+                if (daysSince < avgCycle) return 'luteal'; // Luteal phase (days 17 until next period)
                 
                 return null; // Should be next period
+            }
+            
+            function getPhaseName(phaseClass) {
+                switch(phaseClass) {
+                    case 'period': return 'Menstrual Phase';
+                    case 'follicular': return 'Follicular Phase';
+                    case 'ovulation': return 'Ovulation Phase';
+                    case 'luteal': return 'Luteal Phase';
+                    default: return '';
+                }
             }
             
             function updateCyclePhases() {
@@ -867,38 +955,66 @@
                     return;
                 }
                 
+                // Get current phase
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const currentPhase = getCyclePhase(today);
+                
                 // Create phase information elements
                 const phases = [
+                    {
+                        name: 'Menstrual Phase',
+                        class: 'period',
+                        description: 'The menstrual phase is when you have your period. The uterus sheds its lining, resulting in menstrual bleeding that typically lasts 3-7 days.',
+                        duration: 'Typically 3-7 days',
+                        current: currentPhase === 'period'
+                    },
                     {
                         name: 'Follicular Phase',
                         class: 'follicular',
                         description: 'The follicular phase starts on the first day of your period and ends at ovulation. During this phase, follicles in the ovaries mature and prepare to release an egg.',
-                        duration: 'Typically 13-14 days'
+                        duration: 'Typically 10-16 days',
+                        current: currentPhase === 'follicular'
                     },
                     {
                         name: 'Ovulation Phase',
                         class: 'ovulation',
                         description: 'Ovulation occurs when a mature egg is released from the ovary. This is your most fertile period if you\'re trying to conceive.',
-                        duration: 'Typically 16-32 hours'
+                        duration: 'Typically 3-5 days',
+                        current: currentPhase === 'ovulation'
                     },
                     {
                         name: 'Luteal Phase',
                         class: 'luteal',
                         description: 'The luteal phase begins after ovulation and ends when your next period starts. The body prepares for a potential pregnancy during this phase.',
-                        duration: 'Typically 14 days'
+                        duration: 'Typically 10-14 days',
+                        current: currentPhase === 'luteal'
                     }
                 ];
                 
                 phases.forEach(phase => {
                     const phaseEl = document.createElement('div');
                     phaseEl.classList.add('phase', phase.class);
+                    if (phase.current) {
+                        phaseEl.style.borderLeft = '6px solid var(--primary)';
+                    }
                     
                     const header = document.createElement('h4');
                     const icon = document.createElement('div');
                     icon.classList.add('phase-icon');
                     icon.style.backgroundColor = `var(--${phase.class})`;
                     header.appendChild(icon);
-                    header.appendChild(document.createTextNode(phase.name));
+                    
+                    const phaseName = document.createTextNode(phase.name);
+                    if (phase.current) {
+                        const currentSpan = document.createElement('span');
+                        currentSpan.textContent = ' (Current)';
+                        currentSpan.style.color = 'var(--primary)';
+                        header.appendChild(phaseName);
+                        header.appendChild(currentSpan);
+                    } else {
+                        header.appendChild(phaseName);
+                    }
                     
                     const duration = document.createElement('p');
                     duration.innerHTML = `<strong>Duration:</strong> ${phase.duration}`;
