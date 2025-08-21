@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Period Tracker</title>
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="description" content="A comprehensive period tracking app with cycle phase information">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --primary-light: #ff8e8e;
+            --secondary: #4ecdc4;
+            --ovulation: #ff9ff3;
+            --follicular: #feca57;
+            --luteal: #48dbfb;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #e9ecef;
+            --text: #2d3436;
+            --success: #10ac84;
+            --danger: #ee5253;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 1rem;
+            margin: 0 auto;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .month-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .month-nav button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .month-nav h2 {
+            margin: 0;
+            font-weight: 500;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .day-name {
+            text-align: center;
+            font-weight: bold;
+            padding: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .day {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .day:hover {
+            background-color: var(--gray);
+        }
+        
+        .day.period {
+            background-color: var(--primary-light);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .day.fertile {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .day.follicular {
+            background-color: var(--follicular);
+            color: var(--dark);
+        }
+        
+        .day.ovulation {
+            background-color: var(--ovulation);
+            color: var(--dark);
+        }
+        
+        .day.luteal {
+            background-color: var(--luteal);
+            color: var(--dark);
+        }
+        
+        .day.selected {
+            border: 2px solid var(--primary);
+        }
+        
+        .day.today {
+            background-color: var(--dark);
+            color: white;
+        }
+        
+        .day.empty {
+            cursor: default;
+            background-color: transparent;
+        }
+        
+        .day.empty:hover {
+            background-color: transparent;
+        }
+        
+        .stats {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .stats h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats p {
+            margin: 0.5rem 0;
+        }
+        
+        .cycle-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .cycle-info h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .phase {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+        
+        .phase.follicular {
+            background-color: rgba(254, 202, 87, 0.2);
+            border-left: 4px solid var(--follicular);
+        }
+        
+        .phase.ovulation {
+            background-color: rgba(255, 159, 243, 0.2);
+            border-left: 4px solid var(--ovulation);
+        }
+        
+        .phase.luteal {
+            background-color: rgba(72, 219, 251, 0.2);
+            border-left: 4px solid var(--luteal);
+        }
+        
+        .phase h4 {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .phase-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        button:hover {
+            background-color: var(--primary-light);
+        }
+        
+        button.secondary {
+            background-color: var(--secondary);
+        }
+        
+        button.secondary:hover {
+            background-color: #3dbeb5;
+        }
+        
+        button.danger {
+            background-color: var(--danger);
+        }
+        
+        button.danger:hover {
+            background-color: #ff3838;
+        }
+        
+        .cycle-day {
+            font-size: 0.7rem;
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-header h3 {
+            color: var(--primary);
+        }
+        
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--gray);
+            border-radius: 4px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* Period list styles */
+        .period-list {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .period-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--gray);
+        }
+        
+        .period-item:last-child {
+            border-bottom: none;
+        }
+        
+        .period-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .period-actions button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                max-width: 700px;
+            }
+            
+            .day {
+                height: 50px;
+            }
+        }
+        
+        /* PWA install prompt */
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .install-prompt.show {
+            display: block;
+        }
+        
+        .install-prompt button {
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .actions {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .month-nav h2 {
+                font-size: 1.1rem;
+            }
+            
+            .day {
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            
+            .cycle-day {
+                width: 14px;
+                height: 14px;
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Period Tracker</h1>
+    </header>
+    
+    <div class="container">
+        <div class="month-nav">
+            <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+            <h2 id="current-month">Month Year</h2>
+            <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        
+        <div class="calendar" id="calendar">
+            <!-- Calendar days will be generated here -->
+        </div>
+        
+        <div class="actions">
+            <button id="mark-period"><i class="fas fa-plus"></i> Mark Period</button>
+            <button id="add-multiple" class="secondary"><i class="fas fa-calendar-plus"></i> Add Multiple Days</button>
+            <button id="view-periods" class="secondary"><i class="fas fa-list"></i> View Period History</button>
+            <button id="clear-period" class="danger"><i class="fas fa-trash"></i> Clear Day</button>
+        </div>
+        
+        <div class="stats">
+            <h3>Cycle Information</h3>
+            <p id="cycle-length">Average cycle: Calculating...</p>
+            <p id="period-length">Average period: Calculating...</p>
+            <p id="next-period">Next period expected: Calculating...</p>
+        </div>
+        
+        <div class="cycle-info">
+            <h3>Current Cycle Phases</h3>
+            <div id="phases-container">
+                <!-- Cycle phases will be generated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Multiple Days Modal -->
+    <div class="modal" id="add-days-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Period Days</h3>
+                <span class="close" id="close-add-modal">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="days-count">How many days to add from selected date?</label>
+                <input type="number" id="days-count" min="1" max="10" value="1">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" id="cancel-add">Cancel</button>
+                <button id="confirm-add">Add Days</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Period History Modal -->
+    <div class="modal" id="history-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Period History</h3>
+                <span class="close" id="close-history-modal">&times;</span>
+            </div>
+            <div class="period-list" id="period-list">
+                <!-- Period history will be generated here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="install-prompt" id="install-prompt">
+        <p>Install this app for a better experience</p>
+        <button id="install-btn">Install</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize variables
+            let currentDate = new Date();
+            let selectedDate = null;
+            let periodData = JSON.parse(localStorage.getItem('periodData')) || {
+                periods: [],
+                cycleLengths: [],
+                periodLengths: []
+            };
+            
+            // DOM elements
+            const calendarEl = document.getElementById('calendar');
+            const currentMonthEl = document.getElementById('current-month');
+            const prevMonthBtn = document.getElementById('prev-month');
+            const nextMonthBtn = document.getElementById('next-month');
+            const markPeriodBtn = document.getElementById('mark-period');
+            const addMultipleBtn = document.getElementById('add-multiple');
+            const viewPeriodsBtn = document.getElementById('view-periods');
+            const clearPeriodBtn = document.getElementById('clear-period');
+            const cycleLengthEl = document.getElementById('cycle-length');
+            const periodLengthEl = document.getElementById('period-length');
+            const nextPeriodEl = document.getElementById('next-period');
+            const phasesContainer = document.getElementById('phases-container');
+            const installPrompt = document.getElementById('install-prompt');
+            const installBtn = document.getElementById('install-btn');
+            
+            // Modal elements
+            const addDaysModal = document.getElementById('add-days-modal');
+            const historyModal = document.getElementById('history-modal');
+            const daysCountInput = document.getElementById('days-count');
+            const confirmAddBtn = document.getElementById('confirm-add');
+            const cancelAddBtn = document.getElementById('cancel-add');
+            const closeAddModal = document.getElementById('close-add-modal');
+            const closeHistoryModal = document.getElementById('close-history-modal');
+            const periodList = document.getElementById('period-list');
+            
+            // Initialize calendar
+            renderCalendar();
+            updateStats();
+            updateCyclePhases();
+            
+            // Event listeners
+            prevMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            });
+            
+            nextMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            });
+            
+            markPeriodBtn.addEventListener('click', () => {
+                if (selectedDate) {
+                    addPeriodDay(selectedDate);
+                    renderCalendar();
+                    updateStats();
+                    updateCyclePhases();
+                } else {
+                    alert('Please select a date first');
+                }
+            });
+            
+            addMultipleBtn.addEventListener('click', () => {
+                if (selectedDate) {
+                    addDaysModal.style.display = 'flex';
+                } else {
+                    alert('Please select a date first');
+                }
+            });
+            
+            viewPeriodsBtn.addEventListener('click', () => {
+                renderPeriodList();
+                historyModal.style.display = 'flex';
+            });
+            
+            clearPeriodBtn.addEventListener('click', () => {
+                if (selectedDate) {
+                    removePeriodDay(selectedDate);
+                    renderCalendar();
+                    updateStats();
+                    updateCyclePhases();
+                } else {
+                    alert('Please select a date first');
+                }
+            });
+            
+            // Modal event listeners
+            confirmAddBtn.addEventListener('click', () => {
+                const daysCount = parseInt(daysCountInput.value);
+                if (daysCount > 0 && selectedDate) {
+                    for (let i = 0; i < daysCount; i++) {
+                        const dateToAdd = new Date(selectedDate);
+                        dateToAdd.setDate(selectedDate.getDate() + i);
+                        addPeriodDay(dateToAdd);
+                    }
+                    renderCalendar();
+                    updateStats();
+                    updateCyclePhases();
+                    addDaysModal.style.display = 'none';
+                }
+            });
+            
+            cancelAddBtn.addEventListener('click', () => {
+                addDaysModal.style.display = 'none';
+            });
+            
+            closeAddModal.addEventListener('click', () => {
+                addDaysModal.style.display = 'none';
+            });
+            
+            closeHistoryModal.addEventListener('click', () => {
+                historyModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === addDaysModal) {
+                    addDaysModal.style.display = 'none';
+                }
+                if (e.target === historyModal) {
+                    historyModal.style.display = 'none';
+                }
+            });
+            
+            // PWA installation
+            let deferredPrompt;
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installPrompt.classList.add('show');
+            });
+            
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installPrompt.classList.remove('show');
+                    }
+                    deferredPrompt = null;
+                }
+            });
+            
+            // Service Worker Registration
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+                });
+            }
+            
+            // Functions
+            function renderCalendar() {
+                // Update month header
+                currentMonthEl.textContent = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+                
+                // Clear previous calendar
+                calendarEl.innerHTML = '';
+                
+                // Add day names
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                dayNames.forEach(day => {
+                    const dayEl = document.createElement('div');
+                    dayEl.classList.add('day-name');
+                    dayEl.textContent = day;
+                    calendarEl.appendChild(dayEl);
+                });
+                
+                // Get first day of month and total days
+                const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+                const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+                
+                // Add empty days for first week
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.classList.add('day', 'empty');
+                    calendarEl.appendChild(emptyDay);
+                }
+                
+                // Add days of the month
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
+                    dayDate.setHours(0, 0, 0, 0);
+                    
+                    const dayEl = document.createElement('div');
+                    dayEl.classList.add('day');
+                    dayEl.textContent = i;
+                    
+                    // Check if today
+                    if (dayDate.getTime() === today.getTime()) {
+                        dayEl.classList.add('today');
+                    }
+                    
+                    // Check if selected
+                    if (selectedDate && dayDate.getTime() === selectedDate.getTime()) {
+                        dayEl.classList.add('selected');
+                    }
+                    
+                    // Check if period day
+                    const isPeriod = periodData.periods.some(period => {
+                        const periodDate = new Date(period);
+                        periodDate.setHours(0, 0, 0, 0);
+                        return periodDate.getTime() === dayDate.getTime();
+                    });
+                    
+                    if (isPeriod) {
+                        dayEl.classList.add('period');
+                        
+                        // Add cycle day indicator
+                        const periodIndex = periodData.periods.findIndex(period => {
+                            const periodDate = new Date(period);
+                            periodDate.setHours(0, 0, 0, 0);
+                            return periodDate.getTime() === dayDate.getTime();
+                        });
+                        
+                        if (periodIndex !== -1) {
+                            const cycleDayEl = document.createElement('div');
+                            cycleDayEl.classList.add('cycle-day');
+                            cycleDayEl.textContent = periodIndex + 1;
+                            dayEl.appendChild(cycleDayEl);
+                        }
+                    } else {
+                        // Check cycle phase for non-period days
+                        const phase = getCyclePhase(dayDate);
+                        if (phase) {
+                            dayEl.classList.add(phase);
+                        }
+                    }
+                    
+                    // Add click event
+                    dayEl.addEventListener('click', () => {
+                        selectedDate = dayDate;
+                        renderCalendar();
+                    });
+                    
+                    calendarEl.appendChild(dayEl);
+                }
+            }
+            
+            function addPeriodDay(date) {
+                const dateString = date.toISOString().split('T')[0];
+                
+                // Check if already exists
+                if (!periodData.periods.includes(dateString)) {
+                    periodData.periods.push(dateString);
+                    periodData.periods.sort();
+                    localStorage.setItem('periodData', JSON.stringify(periodData));
+                }
+            }
+            
+            function removePeriodDay(date) {
+                const dateString = date.toISOString().split('T')[0];
+                periodData.periods = periodData.periods.filter(d => d !== dateString);
+                localStorage.setItem('periodData', JSON.stringify(periodData));
+            }
+            
+            function updateStats() {
+                // Calculate average cycle length
+                if (periodData.periods.length > 1) {
+                    const cycles = [];
+                    for (let i = 1; i < periodData.periods.length; i++) {
+                        const prev = new Date(periodData.periods[i-1]);
+                        const curr = new Date(periodData.periods[i]);
+                        const diff = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+                        cycles.push(diff);
+                    }
+                    
+                    const avgCycle = Math.round(cycles.reduce((a, b) => a + b, 0) / cycles.length);
+                    cycleLengthEl.textContent = `Average cycle: ${avgCycle} days`;
+                    
+                    // Predict next period
+                    const lastPeriod = new Date(periodData.periods[periodData.periods.length - 1]);
+                    const nextPeriod = new Date(lastPeriod);
+                    nextPeriod.setDate(lastPeriod.getDate() + avgCycle);
+                    
+                    nextPeriodEl.textContent = `Next period expected: ${nextPeriod.toLocaleDateString()}`;
+                    
+                    // Store cycle lengths for future predictions
+                    periodData.cycleLengths = cycles;
+                    localStorage.setItem('periodData', JSON.stringify(periodData));
+                } else {
+                    cycleLengthEl.textContent = 'Average cycle: Not enough data';
+                    nextPeriodEl.textContent = 'Next period expected: Not enough data';
+                }
+                
+                // Calculate period length (assuming consecutive days are one period)
+                if (periodData.periods.length > 0) {
+                    const periods = [];
+                    let currentPeriod = [new Date(periodData.periods[0])];
+                    
+                    for (let i = 1; i < periodData.periods.length; i++) {
+                        const currentDate = new Date(periodData.periods[i]);
+                        const prevDate = new Date(periodData.periods[i-1]);
+                        prevDate.setDate(prevDate.getDate() + 1);
+                        
+                        if (currentDate.getTime() === prevDate.getTime()) {
+                            currentPeriod.push(currentDate);
+                        } else {
+                            periods.push(currentPeriod.length);
+                            currentPeriod = [currentDate];
+                        }
+                    }
+                    
+                    periods.push(currentPeriod.length);
+                    
+                    const avgPeriod = Math.round(periods.reduce((a, b) => a + b, 0) / periods.length);
+                    periodLengthEl.textContent = `Average period: ${avgPeriod} days`;
+                    
+                    // Store period lengths
+                    periodData.periodLengths = periods;
+                    localStorage.setItem('periodData', JSON.stringify(periodData));
+                } else {
+                    periodLengthEl.textContent = 'Average period: Not enough data';
+                }
+            }
+            
+            function getCyclePhase(date) {
+                if (periodData.periods.length === 0) return null;
+                
+                // Sort periods chronologically
+                const sortedPeriods = [...periodData.periods].sort();
+                const lastPeriod = new Date(sortedPeriods[sortedPeriods.length - 1]);
+                
+                // Calculate days since last period
+                const daysSince = Math.floor((date - lastPeriod) / (1000 * 60 * 60 * 24));
+                
+                // Estimate cycle length (default to 28 days if not enough data)
+                const avgCycle = periodData.cycleLengths.length > 0 ? 
+                    Math.round(periodData.cycleLengths.reduce((a, b) => a + b, 0) / periodData.cycleLengths.length) : 28;
+                
+                // Determine phase based on days since last period
+                if (daysSince < 0) return null; // Before last period
+                if (daysSince < 5) return 'period'; // Period phase (first 5 days)
+                if (daysSince < 13) return 'follicular'; // Follicular phase (days 5-12)
+                if (daysSince < 16) return 'ovulation'; // Ovulation phase (days 13-15)
+                if (daysSince < avgCycle) return 'luteal'; // Luteal phase (days 16 until next period)
+                
+                return null; // Should be next period
+            }
+            
+            function updateCyclePhases() {
+                phasesContainer.innerHTML = '';
+                
+                if (periodData.periods.length === 0) {
+                    phasesContainer.innerHTML = '<p>No period data available. Track your period to see phase information.</p>';
+                    return;
+                }
+                
+                // Create phase information elements
+                const phases = [
+                    {
+                        name: 'Follicular Phase',
+                        class: 'follicular',
+                        description: 'The follicular phase starts on the first day of your period and ends at ovulation. During this phase, follicles in the ovaries mature and prepare to release an egg.',
+                        duration: 'Typically 13-14 days'
+                    },
+                    {
+                        name: 'Ovulation Phase',
+                        class: 'ovulation',
+                        description: 'Ovulation occurs when a mature egg is released from the ovary. This is your most fertile period if you\'re trying to conceive.',
+                        duration: 'Typically 16-32 hours'
+                    },
+                    {
+                        name: 'Luteal Phase',
+                        class: 'luteal',
+                        description: 'The luteal phase begins after ovulation and ends when your next period starts. The body prepares for a potential pregnancy during this phase.',
+                        duration: 'Typically 14 days'
+                    }
+                ];
+                
+                phases.forEach(phase => {
+                    const phaseEl = document.createElement('div');
+                    phaseEl.classList.add('phase', phase.class);
+                    
+                    const header = document.createElement('h4');
+                    const icon = document.createElement('div');
+                    icon.classList.add('phase-icon');
+                    icon.style.backgroundColor = `var(--${phase.class})`;
+                    header.appendChild(icon);
+                    header.appendChild(document.createTextNode(phase.name));
+                    
+                    const duration = document.createElement('p');
+                    duration.innerHTML = `<strong>Duration:</strong> ${phase.duration}`;
+                    
+                    const description = document.createElement('p');
+                    description.textContent = phase.description;
+                    
+                    phaseEl.appendChild(header);
+                    phaseEl.appendChild(duration);
+                    phaseEl.appendChild(description);
+                    
+                    phasesContainer.appendChild(phaseEl);
+                });
+            }
+            
+            function renderPeriodList() {
+                periodList.innerHTML = '';
+                
+                if (periodData.periods.length === 0) {
+                    periodList.innerHTML = '<p>No period history available.</p>';
+                    return;
+                }
+                
+                // Sort periods in descending order
+                const sortedPeriods = [...periodData.periods].sort().reverse();
+                
+                sortedPeriods.forEach(period => {
+                    const item = document.createElement('div');
+                    item.classList.add('period-item');
+                    
+                    const date = new Date(period);
+                    const dateStr = date.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                    
+                    const dateSpan = document.createElement('span');
+                    dateSpan.textContent = dateStr;
+                    
+                    const actions = document.createElement('div');
+                    actions.classList.add('period-actions');
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.classList.add('danger');
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteBtn.title = 'Delete';
+                    deleteBtn.addEventListener('click', () => {
+                        removePeriodDay(date);
+                        renderPeriodList();
+                        renderCalendar();
+                        updateStats();
+                        updateCyclePhases();
+                    });
+                    
+                    actions.appendChild(deleteBtn);
+                    item.appendChild(dateSpan);
+                    item.appendChild(actions);
+                    
+                    periodList.appendChild(item);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
