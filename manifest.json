@@ -1,45 +1,57 @@
 {
-  "name": "Period Tracker",
-  "short_name": "PeriodTracker",
+  "name": "CycleSync Period Tracker",
+  "short_name": "CycleSync",
   "description": "A comprehensive period tracking app with cycle phase information",
-  "start_url": "/index.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ff6b6b",
   "theme_color": "#ff6b6b",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "images/icon-192.png",
+      "src": "images/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "images/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "src": "images/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
     },
     {
-      "src": "images/icon-maskable.png",
+      "src": "images/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Log Period",
-      "short_name": "Log",
-      "description": "Quickly log your current period",
-      "url": "/index.html#log"
-    },
-    {
-      "name": "View Cycle",
-      "short_name": "Cycle",
-      "description": "Check your current cycle phase",
-      "url": "/index.html#cycle"
-    }
-  ]
+  "splash_pages": null,
+  "categories": ["health", "lifestyle"],
+  "lang": "en"
 }
