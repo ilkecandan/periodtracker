@@ -1,12 +1,9 @@
-const CACHE_NAME = 'period-tracker-v2';
+const CACHE_NAME = 'period-tracker-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/styles/main.css',
-  '/script/main.js',
-  '/manifest.json',
-  '/images/icon-192.png',
-  '/images/icon-512.png'
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+  '/manifest.json'
 ];
 
 // INSTALL: Cache static assets
@@ -39,6 +36,15 @@ self.addEventListener('fetch', event => {
 
   // Handle only GET requests
   if (request.method !== 'GET') return;
+
+  // For navigation requests, always try network first
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
 
   // For static assets: cache-first
   if (STATIC_ASSETS.some(asset => request.url.includes(asset))) {
