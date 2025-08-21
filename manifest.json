@@ -1,0 +1,22 @@
+{
+  "name": "Period Tracker",
+  "short_name": "PeriodTracker",
+  "description": "A comprehensive period tracking app with cycle phase information",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ff6b6b",
+  "theme_color": "#ff6b6b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "images/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
