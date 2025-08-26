@@ -1,9 +1,10 @@
-const CACHE_NAME = 'period-tracker-v3';
+const CACHE_NAME = 'cycle-sync-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  '/manifest.json'
+  '/manifest.json',
+  '/images/icon-192x192.png',
+  '/images/icon-512x512.png'
 ];
 
 // INSTALL: Cache static assets
@@ -13,59 +14,48 @@ self.addEventListener('install', event => {
       return cache.addAll(STATIC_ASSETS);
     })
   );
-  self.skipWaiting(); // activate new SW immediately
+  self.skipWaiting();
 });
 
-// ACTIVATE: Clean up old caches
+// ACTIVATE: Clean old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      );
-    })
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
   );
-  self.clients.claim(); // take control of open clients
+  self.clients.claim();
 });
 
-// FETCH: Try network first, fallback to cache
+// FETCH: Network-first for pages, cache-first for assets
 self.addEventListener('fetch', event => {
   const { request } = event;
 
-  // Handle only GET requests
   if (request.method !== 'GET') return;
 
-  // For navigation requests, always try network first
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .catch(() => caches.match('/index.html'))
+      fetch(request).catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // For static assets: cache-first
-  if (STATIC_ASSETS.some(asset => request.url.includes(asset))) {
+  // Static assets = cache-first
+  if (STATIC_ASSETS.some(asset => request.url.endsWith(asset))) {
     event.respondWith(
-      caches.match(request).then(cachedResponse => {
-        return cachedResponse || fetch(request);
-      })
+      caches.match(request).then(res => res || fetch(request))
     );
     return;
   }
 
-  // For everything else: network-first
+  // Everything else = network-first with fallback
   event.respondWith(
     fetch(request)
-      .then(response => {
-        // Save a copy in cache
-        return caches.open(CACHE_NAME).then(cache => {
-          cache.put(request, response.clone());
-          return response;
-        });
+      .then(res => {
+        const resClone = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, resClone));
+        return res;
       })
-      .catch(() => caches.match(request)) // fallback to cache if offline
+      .catch(() => caches.match(request))
   );
 });
