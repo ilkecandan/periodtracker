@@ -3,376 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CycleSync Period Tracker</title>
-    <meta name="theme-color" content="#ff6b6b">
-    <meta name="description" content="A comprehensive period tracking app with cycle phase information">
+    <meta name="theme-color" content="#FF7EC8">
+    <title>Tempest Period Tracker</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="images/icon-192.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌺</text></svg>">
     <style>
         :root {
-            --primary: #ff6b6b;
-            --primary-light: #ff8e8e;
-            --secondary: #4ecdc4;
-            --ovulation: #ff9ff3;
-            --follicular: #feca57;
-            --luteal: #48dbfb;
-            --menstrual: #ff6b6b;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --gray: #e9ecef;
-            --text: #2d3436;
-            --success: #10ac84;
-            --danger: #ee5253;
+            --primary: #FF7EC8;
+            --secondary: #7E6CAB;
+            --follicular: #FFB6C1;
+            --ovulation: #FFA500;
+            --luteal: #87CEEB;
+            --period: #FF007F;
+            --light: #F9F5F0;
+            --dark: #333333;
+            --grey: #E5E5E5;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background-color: var(--light);
-            color: var(--text);
+            color: var(--dark);
             line-height: 1.6;
-            padding: 0;
-            margin: 0;
-            padding-bottom: env(safe-area-inset-bottom);
         }
-        
+
         .container {
             max-width: 100%;
             padding: 1rem;
             margin: 0 auto;
         }
-        
+
         header {
-            background: linear-gradient(135deg, var(--primary), #ff8e8e);
-            color: white;
-            padding: 1rem;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding-top: calc(1rem + env(safe-area-inset-top));
+            padding: 1rem 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        
-        .app-title {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
         }
-        
-        .month-nav {
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .calendar {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 1rem 0;
-            padding: 0.8rem;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 1rem;
         }
-        
-        .month-nav button {
+
+        .calendar-header button {
             background: var(--primary);
-            color: white;
             border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            width: 42px;
-            height: 42px;
             font-size: 1.2rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
         }
-        
-        .month-nav button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .month-nav h2 {
-            margin: 0;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .calendar {
+
+        .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
-            background-color: white;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            gap: 5px;
         }
-        
-        .day-name {
+
+        .calendar-day-name {
             text-align: center;
             font-weight: bold;
-            padding: 0.5rem;
-            color: var(--primary);
             font-size: 0.9rem;
+            padding: 0.5rem 0;
+            color: var(--secondary);
         }
-        
-        .day {
-            height: 44px;
+
+        .calendar-day {
+            height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
+            border-radius: 50%;
             cursor: pointer;
             position: relative;
-            transition: all 0.2s;
-            font-weight: 500;
+            transition: all 0.2s ease;
         }
-        
-        .day:hover {
-            background-color: var(--gray);
-            transform: translateY(-2px);
+
+        .calendar-day:hover {
+            background-color: var(--grey);
         }
-        
-        .day.period {
-            background-color: var(--primary);
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
-        }
-        
-        .day.fertile {
-            background-color: var(--secondary);
-            color: white;
-            box-shadow: 0 2px 6px rgba(78, 205, 196, 0.3);
-        }
-        
-        .day.follicular {
-            background-color: rgba(254, 202, 87, 0.2);
-            color: var(--dark);
-            border: 2px solid var(--follicular);
-        }
-        
-        .day.ovulation {
-            background-color: rgba(255, 159, 243, 0.2);
-            color: var(--dark);
-            border: 2px solid var(--ovulation);
-        }
-        
-        .day.luteal {
-            background-color: rgba(72, 219, 251, 0.2);
-            color: var(--dark);
-            border: 2px solid var(--luteal);
-        }
-        
-        .day.selected {
+
+        .calendar-day.today {
             border: 2px solid var(--primary);
-            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
         }
-        
-        .day.today {
-            background-color: var(--dark);
+
+        .calendar-day.period {
+            background-color: var(--period);
             color: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-        
-        .day.empty {
-            cursor: default;
-            background-color: transparent;
+
+        .calendar-day.ovulation {
+            background-color: var(--ovulation);
+            color: white;
         }
-        
-        .day.empty:hover {
-            background-color: transparent;
-            transform: none;
+
+        .calendar-day.follicular {
+            background-color: var(--follicular);
         }
-        
-        .stats {
-            background-color: white;
-            border-radius: 12px;
-            padding: 1.2rem;
-            margin-top: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+        .calendar-day.luteal {
+            background-color: var(--luteal);
         }
-        
-        .stats h3 {
-            color: var(--primary);
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+
+        .calendar-day.predicted {
+            opacity: 0.7;
         }
-        
-        .stats p {
-            margin: 0.8rem 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+
+        .phase-info {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
-        
-        .stats i {
-            width: 20px;
-            color: var(--primary);
-        }
-        
-        .cycle-info {
-            background-color: white;
-            border-radius: 12px;
-            padding: 1.2rem;
-            margin-top: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        
-        .cycle-info h3 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .phase {
-            margin-bottom: 1.2rem;
-            padding: 1rem;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .phase:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-        
-        .phase.follicular {
-            background-color: rgba(254, 202, 87, 0.15);
-            border-left: 4px solid var(--follicular);
-        }
-        
-        .phase.ovulation {
-            background-color: rgba(255, 159, 243, 0.15);
-            border-left: 4px solid var(--ovulation);
-        }
-        
-        .phase.luteal {
-            background-color: rgba(72, 219, 251, 0.15);
-            border-left: 4px solid var(--luteal);
-        }
-        
-        .phase.menstrual {
-            background-color: rgba(255, 107, 107, 0.15);
-            border-left: 4px solid var(--menstrual);
-        }
-        
-        .phase h4 {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.8rem;
-            color: var(--dark);
-        }
-        
-        .phase-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .phase-duration {
-            font-weight: 600;
+
+        .phase-title {
+            color: var(--secondary);
             margin-bottom: 0.5rem;
-            color: var(--dark);
+            font-size: 1.2rem;
         }
-        
+
         .phase-description {
-            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
             line-height: 1.5;
         }
-        
-        .phase-tips {
+
+        .phase-color {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .prediction-card {
             background: white;
-            padding: 0.8rem;
-            border-radius: 8px;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
-        
-        .phase-tips ul {
-            padding-left: 1.2rem;
-            margin: 0.5rem 0;
+
+        .prediction-title {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
         }
-        
-        .phase-tips li {
-            margin-bottom: 0.3rem;
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--grey);
         }
-        
+
         .actions {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             gap: 1rem;
-            margin: 1.5rem 0;
-            flex-wrap: wrap;
+            margin-bottom: 2rem;
         }
-        
+
         button {
-            padding: 0.8rem 1.2rem;
+            padding: 1rem;
             border: none;
-            border-radius: 8px;
-            background-color: var(--primary);
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 500;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        
-        button:hover {
-            background-color: var(--primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        
-        button.secondary {
-            background-color: var(--secondary);
-        }
-        
-        button.secondary:hover {
-            background-color: #3dbeb5;
-        }
-        
-        button.danger {
-            background-color: var(--danger);
-        }
-        
-        button.danger:hover {
-            background-color: #ff3838;
-        }
-        
-        .cycle-day {
-            font-size: 0.7rem;
-            position: absolute;
-            bottom: 4px;
-            right: 4px;
-            background: rgba(255,255,255,0.8);
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 12px;
             font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        
-        /* Modal styles */
+
+        .primary-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .secondary-btn {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .install-btn {
+            background: var(--secondary);
+            color: white;
+            display: none;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+
+        .day-dot {
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -380,1495 +261,356 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(3px);
         }
-        
+
         .modal-content {
             background-color: white;
-            border-radius: 12px;
-            padding: 1.5rem;
+            padding: 2rem;
+            border-radius: 15px;
             width: 90%;
-            max-width: 450px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-height: 80vh;
-            overflow-y: auto;
+            max-width: 400px;
         }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.2rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid var(--gray);
+
+        .modal-title {
+            margin-bottom: 1rem;
+            color: var(--secondary);
         }
-        
-        .modal-header h3 {
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .close {
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text);
-            transition: color 0.2s;
-        }
-        
-        .close:hover {
-            color: var(--primary);
-        }
-        
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--dark);
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid var(--gray);
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        
+
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 0.8rem;
-            margin-top: 1.2rem;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
-        
-        /* Period list styles */
-        .period-list {
-            margin-top: 1rem;
-            max-height: 50vh;
-            overflow-y: auto;
-        }
-        
-        .period-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.8rem;
-            border-bottom: 1px solid var(--gray);
-            transition: background-color 0.2s;
-        }
-        
-        .period-item:hover {
-            background-color: var(--gray);
-        }
-        
-        .period-item:last-child {
-            border-bottom: none;
-        }
-        
-        .period-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .period-actions button {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.9rem;
-        }
-        
+
+        /* Responsive */
         @media (min-width: 768px) {
             .container {
-                max-width: 700px;
+                max-width: 500px;
             }
-            
-            .day {
-                height: 50px;
-            }
-        }
-        
-        /* PWA install prompt */
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 12px;
-            padding: 1.2rem;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            display: none;
-            z-index: 1000;
-            max-width: 320px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .install-prompt.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .install-prompt button {
-            margin-top: 0.8rem;
-            width: 100%;
-        }
-        
-        .install-prompt-close {
-            position: absolute;
-            top: 8px;
-            right: 12px;
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: var(--text);
-        }
-        
-        /* Install button in header */
-        .install-button {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 0.5rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            gap: 0.3rem;
-            transition: all 0.3s ease;
-        }
-        
-        .install-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Footer styles */
-        .footer {
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            color: var(--text);
-            font-size: 0.9rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        
-        .footer p {
-            margin: 0.8rem 0;
-        }
-        
-        .footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: color 0.2s;
-        }
-        
-        .footer a:hover {
-            color: var(--primary-light);
-            text-decoration: underline;
-        }
-        
-        /* Tabs for navigation */
-        .tabs {
-            display: flex;
-            justify-content: space-around;
-            margin: 1rem 0;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .tab.active {
-            border-bottom: 3px solid var(--primary);
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 480px) {
-            .actions {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .month-nav h2 {
-                font-size: 1.1rem;
-            }
-            
-            .day {
-                height: 40px;
-                font-size: 0.9rem;
-                border-radius: 8px;
-            }
-            
-            .cycle-day {
-                width: 16px;
-                height: 16px;
-                font-size: 0.6rem;
-            }
-            
-            .install-prompt {
-                bottom: 10px;
-                right: 10px;
-                left: 10px;
-                max-width: none;
-            }
-            
-            .tab {
-                padding: 0.8rem 0.5rem;
-                font-size: 0.9rem;
-            }
-            
-            .phase-tips {
-                padding: 0.6rem;
-            }
-            
-            .install-button {
-                padding: 0.4rem 0.6rem;
-                font-size: 0.7rem;
-                right: 0.5rem;
-            }
-        }
-        
-        /* Symptom tracking */
-        .symptom-tracker {
-            margin-top: 1rem;
-        }
-        
-        .symptom-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        
-        .symptom-option {
-            background: var(--gray);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-        
-        .symptom-option.selected {
-            background: var(--primary);
-            color: white;
-        }
-        
-        /* Animation for calendar days */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .day.period, .day.fertile {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Notification styles */
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--primary);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; bottom: 0; }
-            to { opacity: 1; bottom: 20px; }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; bottom: 20px; }
-            to { opacity: 0; bottom: 0; }
-        }
-        
-        /* Offline indicator */
-        .offline-indicator {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--danger);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            z-index: 1001;
-            font-size: 0.8rem;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        
-        /* Onboarding */
-        .onboarding {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: white;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .onboarding-content {
-            max-width: 400px;
-        }
-        
-        .onboarding h2 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-        
-        .onboarding p {
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-        
-        .onboarding-dots {
-            display: flex;
-            gap: 10px;
-            margin: 2rem 0;
-        }
-        
-        .onboarding-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--gray);
-            transition: all 0.3s;
-        }
-        
-        .onboarding-dot.active {
-            background-color: var(--primary);
-            transform: scale(1.2);
-        }
-        
-        /* Quick action buttons */
-        .quick-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin: 1rem 0;
-            flex-wrap: wrap;
-        }
-        
-        .quick-action {
-            background: var(--gray);
-            padding: 0.6rem 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-        
-        .quick-action:hover {
-            background: var(--primary-light);
-            color: white;
-        }
-        
-        /* Prediction accuracy indicator */
-        .prediction-accuracy {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--text);
-        }
-        
-        .accuracy-bar {
-            flex-grow: 1;
-            height: 6px;
-            background: var(--gray);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .accuracy-fill {
-            height: 100%;
-            background: var(--success);
-            border-radius: 3px;
         }
     </style>
 </head>
 <body>
-    <div id="onboarding" class="onboarding" style="display: none;">
-        <div class="onboarding-content">
-            <i class="fas fa-heart" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
-            <h2>Welcome to CycleSync</h2>
-            <p>Track your menstrual cycle, predict your period, and learn about your body's changes throughout the month.</p>
-            <div class="onboarding-dots">
-                <div class="onboarding-dot active"></div>
-                <div class="onboarding-dot"></div>
-                <div class="onboarding-dot"></div>
-            </div>
-            <button id="next-onboarding">Next</button>
-            <button id="skip-onboarding" style="background: transparent; color: var(--text); margin-top: 1rem;">Skip</button>
-        </div>
-    </div>
-    
-    <header>
-        <div class="app-title">
-            <i class="fas fa-heart"></i>
-            <h1>CycleSync Period Tracker</h1>
-        </div>
-        <button id="install-button" class="install-button">
-            <i class="fas fa-download"></i> Install
-        </button>
-    </header>
-    
-    <div class="offline-indicator" id="offline-indicator">Offline Mode</div>
-    
     <div class="container">
-        <div class="tabs">
-            <div class="tab active" data-tab="calendar">Calendar</div>
-            <div class="tab" data-tab="stats">Statistics</div>
-            <div class="tab" data-tab="phases">Cycle Info</div>
-        </div>
-        
-        <div class="tab-content active" id="calendar-tab">
-            <div class="month-nav">
-                <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
-                <h2 id="current-month">Month Year</h2>
-                <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+        <header>
+            <h1>Tempest Period Tracker</h1>
+            <p class="subtitle">Track your cycle with confidence and ease</p>
+        </header>
+
+        <button id="installButton" class="install-btn">Install Tempest App</button>
+
+        <div class="calendar">
+            <div class="calendar-header">
+                <button id="prevMonth">&lt;</button>
+                <h2 id="currentMonth">June 2023</h2>
+                <button id="nextMonth">&gt;</button>
             </div>
-            
-            <div class="quick-actions">
-                <div class="quick-action" id="today-button">
-                    <i class="fas fa-calendar-day"></i> Today
-                </div>
-                <div class="quick-action" id="mark-period-button">
-                    <i class="fas fa-plus"></i> Mark Period
-                </div>
-                <div class="quick-action" id="symptoms-button">
-                    <i class="fas fa-stethoscope"></i> Symptoms
-                </div>
-            </div>
-            
-            <div class="calendar" id="calendar">
+            <div class="calendar-grid" id="calendarGrid">
                 <!-- Calendar days will be generated here -->
             </div>
+        </div>
+
+        <div class="phase-info">
+            <h3 class="phase-title" id="phaseTitle">Today's Phase</h3>
+            <p class="phase-description" id="phaseDescription">Select a day to see information about your cycle phase.</p>
             
-            <div class="actions">
-                <button id="mark-period"><i class="fas fa-plus"></i> Mark Period</button>
-                <button id="add-multiple" class="secondary"><i class="fas fa-calendar-plus"></i> Add Multiple Days</button>
-                <button id="view-periods" class="secondary"><i class="fas fa-list"></i> View History</button>
-                <button id="clear-period" class="danger"><i class="fas fa-trash"></i> Clear Day</button>
+            <div class="phase-color">
+                <div class="color-box" style="background-color: var(--period);"></div>
+                <span>Period</span>
+            </div>
+            <div class="phase-color">
+                <div class="color-box" style="background-color: var(--follicular);"></div>
+                <span>Follicular Phase</span>
+            </div>
+            <div class="phase-color">
+                <div class="color-box" style="background-color: var(--ovulation);"></div>
+                <span>Ovulation</span>
+            </div>
+            <div class="phase-color">
+                <div class="color-box" style="background-color: var(--luteal);"></div>
+                <span>Luteal Phase</span>
             </div>
         </div>
-        
-        <div class="tab-content" id="stats-tab">
-            <div class="stats">
-                <h3><i class="fas fa-chart-line"></i> Cycle Information</h3>
-                <p><i class="fas fa-arrows-alt-h"></i> <span id="cycle-length">Average cycle: Calculating...</span></p>
-                <p><i class="fas fa-calendar-day"></i> <span id="period-length">Average period: Calculating...</span></p>
-                <p><i class="fas fa-calendar-check"></i> <span id="next-period">Next period expected: Calculating...</span></p>
-                <p><i class="fas fa-egg"></i> <span id="fertile-window">Fertile window: Calculating...</span></p>
-                <p><i class="fas fa-clock"></i> <span id="cycle-day">Current cycle day: Calculating...</span></p>
-                
-                <div class="prediction-accuracy">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Prediction accuracy:</span>
-                    <div class="accuracy-bar">
-                        <div class="accuracy-fill" style="width: 75%"></div>
-                    </div>
-                    <span>75%</span>
-                </div>
+
+        <div class="prediction-card">
+            <h3 class="prediction-title">Predictions</h3>
+            <div class="prediction-item">
+                <span>Next period starts:</span>
+                <span id="nextPeriodDate">-</span>
             </div>
-            
-            <div class="symptom-tracker">
-                <h3><i class="fas fa-stethoscope"></i> Symptom Tracker</h3>
-                <p>Select symptoms for today:</p>
-                <div class="symptom-options">
-                    <div class="symptom-option">Cramps</div>
-                    <div class="symptom-option">Headache</div>
-                    <div class="symptom-option">Bloating</div>
-                    <div class="symptom-option">Tender breasts</div>
-                    <div class="symptom-option">Mood swings</div>
-                    <div class="symptom-option">Acne</div>
-                </div>
+            <div class="prediction-item">
+                <span>Ovulation window:</span>
+                <span id="ovulationDate">-</span>
+            </div>
+            <div class="prediction-item">
+                <span>Fertile window:</span>
+                <span id="fertileDate">-</span>
             </div>
         </div>
-        
-        <div class="tab-content" id="phases-tab">
-            <div class="cycle-info">
-                <h3><i class="fas fa-info-circle"></i> Current Cycle Phases</h3>
-                <div id="phases-container">
-                    <!-- Cycle phases will be generated here -->
-                </div>
-            </div>
+
+        <div class="actions">
+            <button class="primary-btn" id="logPeriod">Log Period Start</button>
+            <button class="secondary-btn" id="viewHistory">View Period History</button>
         </div>
-        
-        <div class="footer">
-            <p>Support this project: <a href="https://buymeacoffee.com/ilkecandan" target="_blank"><i class="fas fa-coffee"></i> Buy Me a Coffee</a></p>
-            <p>Visit us: <a href="https://tempestlabs.space" target="_blank"><i class="fas fa-globe"></i> tempestlabs.space</a></p>
-            <p>Your data is stored locally on your device for privacy</p>
-        </div>
+
+        <footer>
+            <p>Made with ❤️ by <a href="https://tempestlabs.space" target="_blank">Tempest Labs</a></p>
+            <p>Support this project: <a href="https://buymeacoffee.com/ilkecandan" target="_blank">Buy Me a Coffee</a></p>
+        </footer>
     </div>
-    
-    <!-- Add Multiple Days Modal -->
-    <div class="modal" id="add-days-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-calendar-plus"></i> Add Period Days</h3>
-                <span class="close" id="close-add-modal">&times;</span>
-            </div>
-            <div class="form-group">
-                <label for="days-count">How many days to add from selected date?</label>
-                <input type="number" id="days-count" min="1" max="10" value="5">
-            </div>
-            <div class="modal-actions">
-                <button class="secondary" id="cancel-add">Cancel</button>
-                <button id="confirm-add">Add Days</button>
-            </div>
-        </div>
-    </div>
-    
+
     <!-- Period History Modal -->
-    <div class="modal" id="history-modal">
+    <div class="modal" id="historyModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-history"></i> Period History</h3>
-                <span class="close" id="close-history-modal">&times;</span>
-            </div>
-            <div class="period-list" id="period-list">
-                <!-- Period history will be generated here -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Symptoms Modal -->
-    <div class="modal" id="symptoms-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-stethoscope"></i> Track Symptoms</h3>
-                <span class="close" id="close-symptoms-modal">&times;</span>
-            </div>
-            <div class="form-group">
-                <label>Select symptoms for <span id="symptoms-date"></span>:</label>
-                <div class="symptom-options">
-                    <div class="symptom-option">Cramps</div>
-                    <div class="symptom-option">Headache</div>
-                    <div class="symptom-option">Bloating</div>
-                    <div class="symptom-option">Tender breasts</div>
-                    <div class="symptom-option">Mood swings</div>
-                    <div class="symptom-option">Acne</div>
-                    <div class="symptom-option">Fatigue</div>
-                    <div class="symptom-option">Backache</div>
-                    <div class="symptom-option">Food cravings</div>
-                </div>
+            <h3 class="modal-title">Period History</h3>
+            <div id="historyList">
+                <!-- History items will be added here -->
             </div>
             <div class="modal-actions">
-                <button class="secondary" id="cancel-symptoms">Cancel</button>
-                <button id="save-symptoms">Save</button>
+                <button class="secondary-btn" id="closeHistory">Close</button>
             </div>
         </div>
-    </div>
-    
-    <div class="install-prompt" id="install-prompt">
-        <button class="install-prompt-close" id="dismiss-install">&times;</button>
-        <p>Install this app for a better experience</p>
-        <button id="install-btn">Install</button>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check if user has completed onboarding
-            if (!localStorage.getItem('onboardingCompleted')) {
-                document.getElementById('onboarding').style.display = 'flex';
-            }
+        // App state
+        let currentDate = new Date();
+        let periodStartDates = JSON.parse(localStorage.getItem('periodStartDates')) || [];
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initCalendar();
+            updatePredictions();
+            checkInstallPrompt();
+        });
+
+        // Calendar functionality
+        function initCalendar() {
+            renderCalendar(currentDate);
             
-            // Initialize variables
-            let currentDate = new Date();
-            let selectedDate = null;
-            let periodData = JSON.parse(localStorage.getItem('periodData')) || {
-                periods: [],
-                cycleLengths: [],
-                periodLengths: [],
-                symptoms: {}
-            };
-            
-            // DOM elements
-            const calendarEl = document.getElementById('calendar');
-            const currentMonthEl = document.getElementById('current-month');
-            const prevMonthBtn = document.getElementById('prev-month');
-            const nextMonthBtn = document.getElementById('next-month');
-            const markPeriodBtn = document.getElementById('mark-period');
-            const addMultipleBtn = document.getElementById('add-multiple');
-            const viewPeriodsBtn = document.getElementById('view-periods');
-            const clearPeriodBtn = document.getElementById('clear-period');
-            const cycleLengthEl = document.getElementById('cycle-length');
-            const periodLengthEl = document.getElementById('period-length');
-            const nextPeriodEl = document.getElementById('next-period');
-            const fertileWindowEl = document.getElementById('fertile-window');
-            const cycleDayEl = document.getElementById('cycle-day');
-            const phasesContainer = document.getElementById('phases-container');
-            const installPrompt = document.getElementById('install-prompt');
-            const installBtn = document.getElementById('install-btn');
-            const dismissInstallBtn = document.getElementById('dismiss-install');
-            const tabs = document.querySelectorAll('.tab');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const installButton = document.getElementById('install-button');
-            const offlineIndicator = document.getElementById('offline-indicator');
-            const todayButton = document.getElementById('today-button');
-            const markPeriodButton = document.getElementById('mark-period-button');
-            const symptomsButton = document.getElementById('symptoms-button');
-            const onboarding = document.getElementById('onboarding');
-            const nextOnboardingBtn = document.getElementById('next-onboarding');
-            const skipOnboardingBtn = document.getElementById('skip-onboarding');
-            
-            // Modal elements
-            const addDaysModal = document.getElementById('add-days-modal');
-            const historyModal = document.getElementById('history-modal');
-            const symptomsModal = document.getElementById('symptoms-modal');
-            const daysCountInput = document.getElementById('days-count');
-            const confirmAddBtn = document.getElementById('confirm-add');
-            const cancelAddBtn = document.getElementById('cancel-add');
-            const closeAddModal = document.getElementById('close-add-modal');
-            const closeHistoryModal = document.getElementById('close-history-modal');
-            const closeSymptomsModal = document.getElementById('close-symptoms-modal');
-            const cancelSymptomsBtn = document.getElementById('cancel-symptoms');
-            const saveSymptomsBtn = document.getElementById('save-symptoms');
-            const symptomsDateEl = document.getElementById('symptoms-date');
-            const periodList = document.getElementById('period-list');
-            
-            // Initialize calendar
-            renderCalendar();
-            updateStats();
-            updateCyclePhases();
-            setupTabNavigation();
-            
-            // Event listeners
-            prevMonthBtn.addEventListener('click', () => {
+            document.getElementById('prevMonth').addEventListener('click', () => {
                 currentDate.setMonth(currentDate.getMonth() - 1);
-                renderCalendar();
+                renderCalendar(currentDate);
             });
             
-            nextMonthBtn.addEventListener('click', () => {
+            document.getElementById('nextMonth').addEventListener('click', () => {
                 currentDate.setMonth(currentDate.getMonth() + 1);
-                renderCalendar();
+                renderCalendar(currentDate);
             });
             
-            markPeriodBtn.addEventListener('click', () => {
-                if (selectedDate) {
-                    addPeriodDay(selectedDate);
-                    renderCalendar();
-                    updateStats();
-                    updateCyclePhases();
-                } else {
-                    showNotification('Please select a date first');
-                }
+            document.getElementById('logPeriod').addEventListener('click', logPeriodStart);
+            document.getElementById('viewHistory').addEventListener('click', showHistory);
+            document.getElementById('closeHistory').addEventListener('click', () => {
+                document.getElementById('historyModal').style.display = 'none';
+            });
+        }
+
+        function renderCalendar(date) {
+            const calendarGrid = document.getElementById('calendarGrid');
+            const monthYearElement = document.getElementById('currentMonth');
+            
+            // Clear previous calendar
+            calendarGrid.innerHTML = '';
+            
+            // Set month and year title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            monthYearElement.textContent = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            
+            // Add day names
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayNames.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day-name';
+                dayElement.textContent = day;
+                calendarGrid.appendChild(dayElement);
             });
             
-            markPeriodButton.addEventListener('click', () => {
-                if (selectedDate) {
-                    addPeriodDay(selectedDate);
-                    renderCalendar();
-                    updateStats();
-                    updateCyclePhases();
-                } else {
-                    showNotification('Please select a date first');
-                }
-            });
+            // Get first day of month and total days
+            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
             
-            addMultipleBtn.addEventListener('click', () => {
-                if (selectedDate) {
-                    addDaysModal.style.display = 'flex';
-                } else {
-                    showNotification('Please select a date first');
-                }
-            });
+            // Add empty days for first week
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day';
+                calendarGrid.appendChild(emptyDay);
+            }
             
-            viewPeriodsBtn.addEventListener('click', () => {
-                renderPeriodList();
-                historyModal.style.display = 'flex';
-            });
-            
-            clearPeriodBtn.addEventListener('click', () => {
-                if (selectedDate) {
-                    removePeriodDay(selectedDate);
-                    renderCalendar();
-                    updateStats();
-                    updateCyclePhases();
-                } else {
-                    showNotification('Please select a date first');
-                }
-            });
-            
-            todayButton.addEventListener('click', () => {
-                currentDate = new Date();
-                selectedDate = new Date();
-                selectedDate.setHours(0, 0, 0, 0);
-                renderCalendar();
-            });
-            
-            symptomsButton.addEventListener('click', () => {
-                if (selectedDate) {
-                    const dateStr = selectedDate.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                    });
-                    symptomsDateEl.textContent = dateStr;
-                    
-                    // Load existing symptoms for this date
-                    const dateKey = selectedDate.toISOString().split('T')[0];
-                    if (periodData.symptoms[dateKey]) {
-                        document.querySelectorAll('#symptoms-modal .symptom-option').forEach(option => {
-                            if (periodData.symptoms[dateKey].includes(option.textContent)) {
-                                option.classList.add('selected');
-                            } else {
-                                option.classList.remove('selected');
-                            }
-                        });
-                    } else {
-                        document.querySelectorAll('#symptoms-modal .symptom-option').forEach(option => {
-                            option.classList.remove('selected');
-                        });
-                    }
-                    
-                    symptomsModal.style.display = 'flex';
-                } else {
-                    showNotification('Please select a date first');
-                }
-            });
-            
-            // Modal event listeners
-            confirmAddBtn.addEventListener('click', () => {
-                const daysCount = parseInt(daysCountInput.value);
-                if (daysCount > 0 && selectedDate) {
-                    for (let i = 0; i < daysCount; i++) {
-                        const dateToAdd = new Date(selectedDate);
-                        dateToAdd.setDate(selectedDate.getDate() + i);
-                        addPeriodDay(dateToAdd);
-                    }
-                    renderCalendar();
-                    updateStats();
-                    updateCyclePhases();
-                    addDaysModal.style.display = 'none';
-                    showNotification('Period days added successfully');
-                }
-            });
-            
-            cancelAddBtn.addEventListener('click', () => {
-                addDaysModal.style.display = 'none';
-            });
-            
-            closeAddModal.addEventListener('click', () => {
-                addDaysModal.style.display = 'none';
-            });
-            
-            closeHistoryModal.addEventListener('click', () => {
-                historyModal.style.display = 'none';
-            });
-            
-            closeSymptomsModal.addEventListener('click', () => {
-                symptomsModal.style.display = 'none';
-            });
-            
-            cancelSymptomsBtn.addEventListener('click', () => {
-                symptomsModal.style.display = 'none';
-            });
-            
-            saveSymptomsBtn.addEventListener('click', () => {
-                if (selectedDate) {
-                    const dateKey = selectedDate.toISOString().split('T')[0];
-                    const selectedSymptoms = [];
-                    
-                    document.querySelectorAll('#symptoms-modal .symptom-option.selected').forEach(option => {
-                        selectedSymptoms.push(option.textContent);
-                    });
-                    
-                    periodData.symptoms[dateKey] = selectedSymptoms;
-                    localStorage.setItem('periodData', JSON.stringify(periodData));
-                    
-                    symptomsModal.style.display = 'none';
-                    showNotification('Symptoms saved successfully');
-                }
-            });
-            
-            // Onboarding event listeners
-            nextOnboardingBtn.addEventListener('click', () => {
-                // Simple onboarding with 3 steps
-                const dots = document.querySelectorAll('.onboarding-dot');
-                if (dots[0].classList.contains('active')) {
-                    dots[0].classList.remove('active');
-                    dots[1].classList.add('active');
-                    document.querySelector('.onboarding h2').textContent = 'Track Your Cycle';
-                    document.querySelector('.onboarding p').textContent = 'Mark your period days, track symptoms, and get predictions for your next cycle.';
-                    nextOnboardingBtn.textContent = 'Next';
-                } else if (dots[1].classList.contains('active')) {
-                    dots[1].classList.remove('active');
-                    dots[2].classList.add('active');
-                    document.querySelector('.onboarding h2').textContent = 'Your Data is Private';
-                    document.querySelector('.onboarding p').textContent = 'All your data is stored locally on your device. We value your privacy.';
-                    nextOnboardingBtn.textContent = 'Get Started';
-                } else {
-                    localStorage.setItem('onboardingCompleted', 'true');
-                    onboarding.style.display = 'none';
-                }
-            });
-            
-            skipOnboardingBtn.addEventListener('click', () => {
-                localStorage.setItem('onboardingCompleted', 'true');
-                onboarding.style.display = 'none';
-            });
-            
-            // Close modal when clicking outside
-            window.addEventListener('click', (e) => {
-                if (e.target === addDaysModal) {
-                    addDaysModal.style.display = 'none';
-                }
-                if (e.target === historyModal) {
-                    historyModal.style.display = 'none';
-                }
-                if (e.target === symptomsModal) {
-                    symptomsModal.style.display = 'none';
-                }
-            });
-            
-            // Symptom tracking in stats tab
-            document.querySelectorAll('#stats-tab .symptom-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    this.classList.toggle('selected');
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const todayKey = today.toISOString().split('T')[0];
-                    
-                    if (!periodData.symptoms[todayKey]) {
-                        periodData.symptoms[todayKey] = [];
-                    }
-                    
-                    const symptom = this.textContent;
-                    if (periodData.symptoms[todayKey].includes(symptom)) {
-                        periodData.symptoms[todayKey] = periodData.symptoms[todayKey].filter(s => s !== symptom);
-                    } else {
-                        periodData.symptoms[todayKey].push(symptom);
-                    }
-                    
-                    localStorage.setItem('periodData', JSON.stringify(periodData));
-                });
-            });
-            
-            // Symptom tracking in modal
-            document.querySelectorAll('#symptoms-modal .symptom-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    this.classList.toggle('selected');
-                });
-            });
-            
-            // PWA installation
-            let deferredPrompt;
-            
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
+            // Add days of the month
+            const today = new Date();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = i;
                 
-                // Show install button in header
-                installButton.style.display = 'flex';
+                const dayDate = new Date(date.getFullYear(), date.getMonth(), i);
                 
-                // Only show install prompt if not already installed and not dismissed
-                if (!localStorage.getItem('installPromptDismissed')) {
-                    setTimeout(() => {
-                        installPrompt.classList.add('show');
-                    }, 3000);
+                // Check if today
+                if (dayDate.toDateString() === today.toDateString()) {
+                    dayElement.classList.add('today');
                 }
-            });
-            
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                        installPrompt.classList.remove('show');
-                        installButton.style.display = 'none';
-                        localStorage.setItem('installPromptDismissed', 'true');
-                    }
-                    deferredPrompt = null;
+                
+                // Check if period start date
+                const isPeriodStart = periodStartDates.some(d => {
+                    const periodDate = new Date(d);
+                    return periodDate.toDateString() === dayDate.toDateString();
+                });
+                
+                if (isPeriodStart) {
+                    dayElement.classList.add('period');
                 }
-            });
+                
+                // Add click event
+                dayElement.addEventListener('click', () => {
+                    selectDay(dayDate);
+                });
+                
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        function selectDay(date) {
+            // For now, just show phase info for the selected day
+            showPhaseInfo(date);
+        }
+
+        function showPhaseInfo(date) {
+            const phaseTitle = document.getElementById('phaseTitle');
+            const phaseDescription = document.getElementById('phaseDescription');
             
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                        installButton.style.display = 'none';
-                        localStorage.setItem('installPromptDismissed', 'true');
-                    }
-                    deferredPrompt = null;
+            // This is a simplified version - a real app would calculate based on cycle data
+            const dayOfMonth = date.getDate();
+            
+            if (dayOfMonth <= 7) {
+                phaseTitle.textContent = "Follicular Phase";
+                phaseDescription.textContent = "The follicular phase starts on the first day of your period and ends with ovulation. Your ovaries are preparing an egg for release.";
+            } else if (dayOfMonth <= 14) {
+                phaseTitle.textContent = "Ovulation Phase";
+                phaseDescription.textContent = "Ovulation occurs when your ovary releases a mature egg. This is when you're most fertile.";
+            } else if (dayOfMonth <= 28) {
+                phaseTitle.textContent = "Luteal Phase";
+                phaseDescription.textContent = "The luteal phase begins after ovulation and ends with the start of your period. Your body is preparing for a potential pregnancy.";
+            } else {
+                phaseTitle.textContent = "Menstrual Phase";
+                phaseDescription.textContent = "Your period occurs when the lining of your uterus sheds. This typically lasts 3-7 days.";
+            }
+        }
+
+        function logPeriodStart() {
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            
+            // Check if already logged today
+            if (!periodStartDates.includes(dateString)) {
+                periodStartDates.push(dateString);
+                localStorage.setItem('periodStartDates', JSON.stringify(periodStartDates));
+                
+                // Re-render calendar and update predictions
+                renderCalendar(currentDate);
+                updatePredictions();
+                
+                alert('Period start logged for today!');
+            } else {
+                alert('You already logged your period start for today.');
+            }
+        }
+
+        function updatePredictions() {
+            if (periodStartDates.length > 0) {
+                // Simple prediction algorithm (assuming 28-day cycle)
+                const lastPeriod = new Date(periodStartDates[periodStartDates.length - 1]);
+                const nextPeriod = new Date(lastPeriod);
+                nextPeriod.setDate(nextPeriod.getDate() + 28);
+                
+                const ovulationDate = new Date(lastPeriod);
+                ovulationDate.setDate(ovulationDate.getDate() + 14);
+                
+                const fertileStart = new Date(ovulationDate);
+                fertileStart.setDate(fertileStart.getDate() - 3);
+                
+                const fertileEnd = new Date(ovulationDate);
+                fertileEnd.setDate(fertileEnd.getDate() + 1);
+                
+                document.getElementById('nextPeriodDate').textContent = nextPeriod.toDateString();
+                document.getElementById('ovulationDate').textContent = ovulationDate.toDateString();
+                document.getElementById('fertileDate').textContent = `${fertileStart.toDateString()} - ${fertileEnd.toDateString()}`;
+            }
+        }
+
+        function showHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            if (periodStartDates.length === 0) {
+                historyList.innerHTML = '<p>No period history yet. Start tracking to see your history here.</p>';
+            } else {
+                periodStartDates.forEach(date => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'prediction-item';
+                    historyItem.textContent = new Date(date).toDateString();
+                    historyList.appendChild(historyItem);
+                });
+            }
+            
+            document.getElementById('historyModal').style.display = 'flex';
+        }
+
+        // PWA Installation functionality
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show the install button
+            installButton.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                } else {
+                    console.log('User dismissed the install prompt');
                 }
-            });
-            
-            dismissInstallBtn.addEventListener('click', () => {
-                installPrompt.classList.remove('show');
-                localStorage.setItem('installPromptDismissed', 'true');
-            });
-            
-            // Check if app is already installed
-            window.addEventListener('appinstalled', () => {
-                console.log('PWA was installed');
-                installPrompt.classList.remove('show');
-                installButton.style.display = 'none';
-                localStorage.setItem('installPromptDismissed', 'true');
+                // We've used the prompt, and can't use it again, throw it away
                 deferredPrompt = null;
-            });
-            
-            // Check if running in standalone mode (already installed)
-            if (window.matchMedia('(display-mode: standalone)').matches) {
+                // Hide the install button
                 installButton.style.display = 'none';
-                installPrompt.classList.remove('show');
-            }
-            
-            // Service Worker Registration
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-                });
-            }
-            
-            // Online/Offline detection
-            window.addEventListener('online', () => {
-                offlineIndicator.style.display = 'none';
-                showNotification('Back online');
-            });
-            
-            window.addEventListener('offline', () => {
-                offlineIndicator.style.display = 'block';
-                showNotification('You are offline');
-            });
-            
-            // Functions
-            function setupTabNavigation() {
-                tabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        const tabId = tab.getAttribute('data-tab');
-                        
-                        // Update active tab
-                        tabs.forEach(t => t.classList.remove('active'));
-                        tab.classList.add('active');
-                        
-                        // Show active content
-                        tabContents.forEach(content => content.classList.remove('active'));
-                        document.getElementById(`${tabId}-tab`).classList.add('active');
-                        
-                        // Update stats when switching to stats tab
-                        if (tabId === 'stats') {
-                            updateStats();
-                        }
-                        
-                        // Update phases when switching to phases tab
-                        if (tabId === 'phases') {
-                            updateCyclePhases();
-                        }
-                    });
-                });
-            }
-            
-            function renderCalendar() {
-                // Update month header
-                currentMonthEl.textContent = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-                
-                // Clear previous calendar
-                calendarEl.innerHTML = '';
-                
-                // Add day names
-                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                dayNames.forEach(day => {
-                    const dayEl = document.createElement('div');
-                    dayEl.classList.add('day-name');
-                    dayEl.textContent = day;
-                    calendarEl.appendChild(dayEl);
-                });
-                
-                // Get first day of month and total days
-                const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-                const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-                
-                // Add empty days for first week
-                for (let i = 0; i < firstDay; i++) {
-                    const emptyDay = document.createElement('div');
-                    emptyDay.classList.add('day', 'empty');
-                    calendarEl.appendChild(emptyDay);
-                }
-                
-                // Add days of the month
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                for (let i = 1; i <= daysInMonth; i++) {
-                    const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
-                    dayDate.setHours(0, 0, 0, 0);
-                    
-                    const dayEl = document.createElement('div');
-                    dayEl.classList.add('day');
-                    dayEl.textContent = i;
-                    
-                    // Check if today
-                    if (dayDate.getTime() === today.getTime()) {
-                        dayEl.classList.add('today');
-                    }
-                    
-                    // Check if selected
-                    if (selectedDate && dayDate.getTime() === selectedDate.getTime()) {
-                        dayEl.classList.add('selected');
-                    }
-                    
-                    // Check if period day
-                    const isPeriod = periodData.periods.some(period => {
-                        const periodDate = new Date(period);
-                        periodDate.setHours(0, 0, 0, 0);
-                        return periodDate.getTime() === dayDate.getTime();
-                    });
-                    
-                    if (isPeriod) {
-                        dayEl.classList.add('period');
-                        
-                        // Add cycle day indicator
-                        const periodIndex = periodData.periods.findIndex(period => {
-                            const periodDate = new Date(period);
-                            periodDate.setHours(0, 0, 0, 0);
-                            return periodDate.getTime() === dayDate.getTime();
-                        });
-                        
-                        if (periodIndex !== -1) {
-                            const cycleDayEl = document.createElement('div');
-                            cycleDayEl.classList.add('cycle-day');
-                            cycleDayEl.textContent = periodIndex + 1;
-                            dayEl.appendChild(cycleDayEl);
-                        }
-                    } else {
-                        // Check cycle phase for non-period days
-                        const phase = getCyclePhase(dayDate);
-                        if (phase) {
-                            dayEl.classList.add(phase);
-                            
-                            // Add tooltip for phase
-                            dayEl.title = getPhaseName(phase);
-                        }
-                    }
-                    
-                    // Add click event - FIXED: Now correctly selects the clicked date
-                    dayEl.addEventListener('click', () => {
-                        // Create a new date object to avoid reference issues
-                        selectedDate = new Date(dayDate);
-                        renderCalendar();
-                    });
-                    
-                    calendarEl.appendChild(dayEl);
-                }
-            }
-            
-            function addPeriodDay(date) {
-                // FIXED: Use a consistent date format without time component
-                const dateString = date.toISOString().split('T')[0];
-                
-                // Check if already exists
-                if (!periodData.periods.includes(dateString)) {
-                    periodData.periods.push(dateString);
-                    periodData.periods.sort((a, b) => new Date(a) - new Date(b));
-                    localStorage.setItem('periodData', JSON.stringify(periodData));
-                    showNotification('Period day added');
-                } else {
-                    showNotification('This day is already marked as period');
-                }
-            }
-            
-            function removePeriodDay(date) {
-                // FIXED: Use the same date format for consistency
-                const dateString = date.toISOString().split('T')[0];
-                periodData.periods = periodData.periods.filter(d => d !== dateString);
-                localStorage.setItem('periodData', JSON.stringify(periodData));
-                showNotification('Period day removed');
-            }
-            
-            function updateStats() {
-                // Calculate average cycle length
-                if (periodData.periods.length > 1) {
-                    const cycles = [];
-                    for (let i = 1; i < periodData.periods.length; i++) {
-                        const prev = new Date(periodData.periods[i-1]);
-                        const curr = new Date(periodData.periods[i]);
-                        const diff = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
-                        cycles.push(diff);
-                    }
-                    
-                    const avgCycle = Math.round(cycles.reduce((a, b) => a + b, 0) / cycles.length);
-                    cycleLengthEl.textContent = `Average cycle: ${avgCycle} days`;
-                    
-                    // Predict next period
-                    const lastPeriod = new Date(periodData.periods[periodData.periods.length - 1]);
-                    const nextPeriod = new Date(lastPeriod);
-                    nextPeriod.setDate(lastPeriod.getDate() + avgCycle);
-                    
-                    nextPeriodEl.textContent = `Next period expected: ${nextPeriod.toLocaleDateString()}`;
-                    
-                    // Calculate fertile window (typically days 10-17 of cycle)
-                    const fertileStart = new Date(lastPeriod);
-                    fertileStart.setDate(lastPeriod.getDate() + 10);
-                    
-                    const fertileEnd = new Date(lastPeriod);
-                    fertileEnd.setDate(lastPeriod.getDate() + 17);
-                    
-                    fertileWindowEl.textContent = `Fertile window: ${fertileStart.toLocaleDateString()} - ${fertileEnd.toLocaleDateString()}`;
-                    
-                    // Calculate current cycle day
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const daysSinceLastPeriod = Math.floor((today - lastPeriod) / (1000 * 60 * 60 * 24));
-                    
-                    if (daysSinceLastPeriod >= 0) {
-                        cycleDayEl.textContent = `Current cycle day: ${daysSinceLastPeriod + 1}`;
-                    } else {
-                        cycleDayEl.textContent = 'Current cycle day: Not started';
-                    }
-                    
-                    // Store cycle lengths for future predictions
-                    periodData.cycleLengths = cycles;
-                    localStorage.setItem('periodData', JSON.stringify(periodData));
-                } else {
-                    cycleLengthEl.textContent = 'Average cycle: Not enough data';
-                    nextPeriodEl.textContent = 'Next period expected: Not enough data';
-                    fertileWindowEl.textContent = 'Fertile window: Not enough data';
-                    cycleDayEl.textContent = 'Current cycle day: Not enough data';
-                }
-                
-                // Calculate period length (assuming consecutive days are one period)
-                if (periodData.periods.length > 0) {
-                    const periods = [];
-                    let currentPeriod = [new Date(periodData.periods[0])];
-                    
-                    for (let i = 1; i < periodData.periods.length; i++) {
-                        const currentDate = new Date(periodData.periods[i]);
-                        const prevDate = new Date(periodData.periods[i-1]);
-                        prevDate.setDate(prevDate.getDate() + 1);
-                        
-                        if (currentDate.getTime() === prevDate.getTime()) {
-                            currentPeriod.push(currentDate);
-                        } else {
-                            periods.push(currentPeriod.length);
-                            currentPeriod = [currentDate];
-                        }
-                    }
-                    
-                    periods.push(currentPeriod.length);
-                    
-                    const avgPeriod = Math.round(periods.reduce((a, b) => a + b, 0) / periods.length);
-                    periodLengthEl.textContent = `Average period: ${avgPeriod} days`;
-                    
-                    // Store period lengths
-                    periodData.periodLengths = periods;
-                    localStorage.setItem('periodData', JSON.stringify(periodData));
-                } else {
-                    periodLengthEl.textContent = 'Average period: Not enough data';
-                }
-            }
-            
-            function getCyclePhase(date) {
-                if (periodData.periods.length === 0) return null;
-                
-                // Sort periods chronologically
-                const sortedPeriods = [...periodData.periods].sort();
-                const lastPeriod = new Date(sortedPeriods[sortedPeriods.length - 1]);
-                
-                // Calculate days since last period
-                const daysSince = Math.floor((date - lastPeriod) / (1000 * 60 * 60 * 24));
-                
-                // Estimate cycle length (default to 28 days if not enough data)
-                const avgCycle = periodData.cycleLengths.length > 0 ? 
-                    Math.round(periodData.cycleLengths.reduce((a, b) => a + b, 0) / periodData.cycleLengths.length) : 28;
-                
-                // Determine phase based on days since last period
-                if (daysSince < 0) return null; // Before last period
-                if (daysSince < 5) return 'menstrual'; // Period phase (first 5 days)
-                if (daysSince < 10) return 'follicular'; // Follicular phase (days 5-9)
-                if (daysSince < 17) return 'ovulation'; // Ovulation phase (days 10-16)
-                if (daysSince < avgCycle) return 'luteal'; // Luteal phase (days 17 until next period)
-                
-                return null; // Should be next period
-            }
-            
-            function getPhaseName(phaseClass) {
-                switch(phaseClass) {
-                    case 'menstrual': return 'Menstrual Phase';
-                    case 'follicular': return 'Follicular Phase';
-                    case 'ovulation': return 'Ovulation Phase';
-                    case 'luteal': return 'Luteal Phase';
-                    default: return '';
-                }
-            }
-            
-            function updateCyclePhases() {
-                phasesContainer.innerHTML = '';
-                
-                if (periodData.periods.length === 0) {
-                    phasesContainer.innerHTML = '<p>No period data available. Track your period to see phase information.</p>';
-                    return;
-                }
-                
-                // Get current phase
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const currentPhase = getCyclePhase(today);
-                
-                // Create phase information elements
-                const phases = [
-                    {
-                        name: 'Menstrual Phase',
-                        class: 'menstrual',
-                        description: 'The menstrual phase is when you have your period. The uterus sheds its lining, resulting in menstrual bleeding that typically lasts 3-7 days. This phase begins on day 1 of your cycle.',
-                        duration: 'Typically 3-7 days',
-                        current: currentPhase === 'menstrual',
-                        tips: [
-                            'Use a heating pad for cramps',
-                            'Stay hydrated and eat iron-rich foods',
-                            'Consider gentle exercises like walking or yoga',
-                            'Get plenty of rest and listen to your body'
-                        ]
-                    },
-                    {
-                        name: 'Follicular Phase',
-                        class: 'follicular',
-                        description: 'The follicular phase starts on the first day of your period and ends at ovulation. During this phase, follicles in the ovaries mature and prepare to release an egg. Estrogen levels rise, thickening the uterine lining.',
-                        duration: 'Typically 10-16 days',
-                        current: currentPhase === 'follicular',
-                        tips: [
-                            'Great time for intense workouts',
-                            'Your energy levels are likely increasing',
-                            'Focus on protein-rich foods to support follicle development',
-                            'This is a good time for creative projects'
-                        ]
-                    },
-                    {
-                        name: 'Ovulation Phase',
-                        class: 'ovulation',
-                        description: 'Ovulation occurs when a mature egg is released from the ovary. This is your most fertile period if you\'re trying to conceive. You may notice changes in cervical mucus and a slight rise in basal body temperature.',
-                        duration: 'Typically 3-5 days',
-                        current: currentPhase === 'ovulation',
-                        tips: [
-                            'If trying to conceive, this is your most fertile window',
-                            'You might experience increased libido',
-                            'Stay hydrated and maintain a balanced diet',
-                            'Pay attention to ovulation symptoms like mild abdominal pain'
-                        ]
-                    },
-                    {
-                        name: 'Luteal Phase',
-                        class: 'luteal',
-                        description: 'The luteal phase begins after ovulation and ends when your next period starts. The body prepares for a potential pregnancy during this phase. Progesterone levels rise, which might cause PMS symptoms like bloating, mood swings, or breast tenderness.',
-                        duration: 'Typically 10-14 days',
-                        current: currentPhase === 'luteal',
-                        tips: [
-                            'Be mindful of PMS symptoms',
-                            'Reduce salt intake to minimize bloating',
-                            'Foods rich in magnesium may help with cramps',
-                            'Practice stress-reduction techniques like meditation',
-                            'Consider lighter exercises if you\'re feeling fatigued'
-                        ]
-                    }
-                ];
-                
-                phases.forEach(phase => {
-                    const phaseEl = document.createElement('div');
-                    phaseEl.classList.add('phase', phase.class);
-                    if (phase.current) {
-                        phaseEl.style.borderLeft = '6px solid var(--primary)';
-                    }
-                    
-                    const header = document.createElement('h4');
-                    const icon = document.createElement('div');
-                    icon.classList.add('phase-icon');
-                    icon.style.backgroundColor = `var(--${phase.class})`;
-                    header.appendChild(icon);
-                    
-                    const phaseName = document.createTextNode(phase.name);
-                    if (phase.current) {
-                        const currentSpan = document.createElement('span');
-                        currentSpan.textContent = ' (Current)';
-                        currentSpan.style.color = 'var(--primary)';
-                        header.appendChild(phaseName);
-                        header.appendChild(currentSpan);
-                    } else {
-                        header.appendChild(phaseName);
-                    }
-                    
-                    const duration = document.createElement('div');
-                    duration.classList.add('phase-duration');
-                    duration.innerHTML = `<i class="fas fa-clock"></i> ${phase.duration}`;
-                    
-                    const description = document.createElement('div');
-                    description.classList.add('phase-description');
-                    description.textContent = phase.description;
-                    
-                    phaseEl.appendChild(header);
-                    phaseEl.appendChild(duration);
-                    phaseEl.appendChild(description);
-                    
-                    // Add tips section
-                    if (phase.tips && phase.tips.length > 0) {
-                        const tipsSection = document.createElement('div');
-                        tipsSection.classList.add('phase-tips');
-                        
-                        const tipsTitle = document.createElement('div');
-                        tipsTitle.innerHTML = '<strong><i class="fas fa-lightbulb"></i> Helpful Tips:</strong>';
-                        tipsSection.appendChild(tipsTitle);
-                        
-                        const tipsList = document.createElement('ul');
-                        phase.tips.forEach(tip => {
-                            const tipItem = document.createElement('li');
-                            tipItem.textContent = tip;
-                            tipsList.appendChild(tipItem);
-                        });
-                        
-                        tipsSection.appendChild(tipsList);
-                        phaseEl.appendChild(tipsSection);
-                    }
-                    
-                    phasesContainer.appendChild(phaseEl);
-                });
-            }
-            
-            function renderPeriodList() {
-                periodList.innerHTML = '';
-                
-                if (periodData.periods.length === 0) {
-                    periodList.innerHTML = '<p>No period history available.</p>';
-                    return;
-                }
-                
-                // Sort periods in descending order
-                const sortedPeriods = [...periodData.periods].sort().reverse();
-                
-                sortedPeriods.forEach(period => {
-                    const item = document.createElement('div');
-                    item.classList.add('period-item');
-                    
-                    const date = new Date(period);
-                    const dateStr = date.toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                    });
-                    
-                    const dateSpan = document.createElement('span');
-                    dateSpan.textContent = dateStr;
-                    
-                    const actions = document.createElement('div');
-                    actions.classList.add('period-actions');
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.classList.add('danger');
-                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                    deleteBtn.title = 'Delete';
-                    deleteBtn.addEventListener('click', () => {
-                        removePeriodDay(date);
-                        renderPeriodList();
-                        renderCalendar();
-                        updateStats();
-                        updateCyclePhases();
-                    });
-                    
-                    actions.appendChild(deleteBtn);
-                    item.appendChild(dateSpan);
-                    item.appendChild(actions);
-                    
-                    periodList.appendChild(item);
-                });
-            }
-            
-            function showNotification(message) {
-                // Create notification element
-                const notification = document.createElement('div');
-                notification.classList.add('notification');
-                notification.textContent = message;
-                
-                document.body.appendChild(notification);
-                
-                // Remove notification after 3 seconds
-                setTimeout(() => {
-                    if (document.body.contains(notification)) {
-                        document.body.removeChild(notification);
-                    }
-                }, 3000);
             }
         });
+
+        function checkInstallPrompt() {
+            // Check if the app is already installed
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                installButton.style.display = 'none';
+            }
+        }
+
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(
+                    function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    },
+                    function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    }
+                );
+            });
+        }
     </script>
 </body>
 </html>
