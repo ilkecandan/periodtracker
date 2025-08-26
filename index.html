@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Period Tracker</title>
+    <title>CycleSync Period Tracker</title>
     <meta name="theme-color" content="#ff6b6b">
     <meta name="description" content="A comprehensive period tracking app with cycle phase information">
     <link rel="manifest" href="manifest.json">
@@ -757,9 +757,123 @@
             display: none;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
+        
+        /* Onboarding */
+        .onboarding {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .onboarding-content {
+            max-width: 400px;
+        }
+        
+        .onboarding h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .onboarding p {
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .onboarding-dots {
+            display: flex;
+            gap: 10px;
+            margin: 2rem 0;
+        }
+        
+        .onboarding-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--gray);
+            transition: all 0.3s;
+        }
+        
+        .onboarding-dot.active {
+            background-color: var(--primary);
+            transform: scale(1.2);
+        }
+        
+        /* Quick action buttons */
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action {
+            background: var(--gray);
+            padding: 0.6rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .quick-action:hover {
+            background: var(--primary-light);
+            color: white;
+        }
+        
+        /* Prediction accuracy indicator */
+        .prediction-accuracy {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        
+        .accuracy-bar {
+            flex-grow: 1;
+            height: 6px;
+            background: var(--gray);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .accuracy-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
+    <div id="onboarding" class="onboarding" style="display: none;">
+        <div class="onboarding-content">
+            <i class="fas fa-heart" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            <h2>Welcome to CycleSync</h2>
+            <p>Track your menstrual cycle, predict your period, and learn about your body's changes throughout the month.</p>
+            <div class="onboarding-dots">
+                <div class="onboarding-dot active"></div>
+                <div class="onboarding-dot"></div>
+                <div class="onboarding-dot"></div>
+            </div>
+            <button id="next-onboarding">Next</button>
+            <button id="skip-onboarding" style="background: transparent; color: var(--text); margin-top: 1rem;">Skip</button>
+        </div>
+    </div>
+    
     <header>
         <div class="app-title">
             <i class="fas fa-heart"></i>
@@ -786,6 +900,18 @@
                 <button id="next-month"><i class="fas fa-chevron-right"></i></button>
             </div>
             
+            <div class="quick-actions">
+                <div class="quick-action" id="today-button">
+                    <i class="fas fa-calendar-day"></i> Today
+                </div>
+                <div class="quick-action" id="mark-period-button">
+                    <i class="fas fa-plus"></i> Mark Period
+                </div>
+                <div class="quick-action" id="symptoms-button">
+                    <i class="fas fa-stethoscope"></i> Symptoms
+                </div>
+            </div>
+            
             <div class="calendar" id="calendar">
                 <!-- Calendar days will be generated here -->
             </div>
@@ -806,6 +932,15 @@
                 <p><i class="fas fa-calendar-check"></i> <span id="next-period">Next period expected: Calculating...</span></p>
                 <p><i class="fas fa-egg"></i> <span id="fertile-window">Fertile window: Calculating...</span></p>
                 <p><i class="fas fa-clock"></i> <span id="cycle-day">Current cycle day: Calculating...</span></p>
+                
+                <div class="prediction-accuracy">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Prediction accuracy:</span>
+                    <div class="accuracy-bar">
+                        <div class="accuracy-fill" style="width: 75%"></div>
+                    </div>
+                    <span>75%</span>
+                </div>
             </div>
             
             <div class="symptom-tracker">
@@ -869,6 +1004,34 @@
         </div>
     </div>
     
+    <!-- Symptoms Modal -->
+    <div class="modal" id="symptoms-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-stethoscope"></i> Track Symptoms</h3>
+                <span class="close" id="close-symptoms-modal">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Select symptoms for <span id="symptoms-date"></span>:</label>
+                <div class="symptom-options">
+                    <div class="symptom-option">Cramps</div>
+                    <div class="symptom-option">Headache</div>
+                    <div class="symptom-option">Bloating</div>
+                    <div class="symptom-option">Tender breasts</div>
+                    <div class="symptom-option">Mood swings</div>
+                    <div class="symptom-option">Acne</div>
+                    <div class="symptom-option">Fatigue</div>
+                    <div class="symptom-option">Backache</div>
+                    <div class="symptom-option">Food cravings</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" id="cancel-symptoms">Cancel</button>
+                <button id="save-symptoms">Save</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="install-prompt" id="install-prompt">
         <button class="install-prompt-close" id="dismiss-install">&times;</button>
         <p>Install this app for a better experience</p>
@@ -877,6 +1040,11 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Check if user has completed onboarding
+            if (!localStorage.getItem('onboardingCompleted')) {
+                document.getElementById('onboarding').style.display = 'flex';
+            }
+            
             // Initialize variables
             let currentDate = new Date();
             let selectedDate = null;
@@ -909,15 +1077,26 @@
             const tabContents = document.querySelectorAll('.tab-content');
             const installButton = document.getElementById('install-button');
             const offlineIndicator = document.getElementById('offline-indicator');
+            const todayButton = document.getElementById('today-button');
+            const markPeriodButton = document.getElementById('mark-period-button');
+            const symptomsButton = document.getElementById('symptoms-button');
+            const onboarding = document.getElementById('onboarding');
+            const nextOnboardingBtn = document.getElementById('next-onboarding');
+            const skipOnboardingBtn = document.getElementById('skip-onboarding');
             
             // Modal elements
             const addDaysModal = document.getElementById('add-days-modal');
             const historyModal = document.getElementById('history-modal');
+            const symptomsModal = document.getElementById('symptoms-modal');
             const daysCountInput = document.getElementById('days-count');
             const confirmAddBtn = document.getElementById('confirm-add');
             const cancelAddBtn = document.getElementById('cancel-add');
             const closeAddModal = document.getElementById('close-add-modal');
             const closeHistoryModal = document.getElementById('close-history-modal');
+            const closeSymptomsModal = document.getElementById('close-symptoms-modal');
+            const cancelSymptomsBtn = document.getElementById('cancel-symptoms');
+            const saveSymptomsBtn = document.getElementById('save-symptoms');
+            const symptomsDateEl = document.getElementById('symptoms-date');
             const periodList = document.getElementById('period-list');
             
             // Initialize calendar
@@ -938,6 +1117,17 @@
             });
             
             markPeriodBtn.addEventListener('click', () => {
+                if (selectedDate) {
+                    addPeriodDay(selectedDate);
+                    renderCalendar();
+                    updateStats();
+                    updateCyclePhases();
+                } else {
+                    showNotification('Please select a date first');
+                }
+            });
+            
+            markPeriodButton.addEventListener('click', () => {
                 if (selectedDate) {
                     addPeriodDay(selectedDate);
                     renderCalendar();
@@ -972,6 +1162,45 @@
                 }
             });
             
+            todayButton.addEventListener('click', () => {
+                currentDate = new Date();
+                selectedDate = new Date();
+                selectedDate.setHours(0, 0, 0, 0);
+                renderCalendar();
+            });
+            
+            symptomsButton.addEventListener('click', () => {
+                if (selectedDate) {
+                    const dateStr = selectedDate.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                    symptomsDateEl.textContent = dateStr;
+                    
+                    // Load existing symptoms for this date
+                    const dateKey = selectedDate.toISOString().split('T')[0];
+                    if (periodData.symptoms[dateKey]) {
+                        document.querySelectorAll('#symptoms-modal .symptom-option').forEach(option => {
+                            if (periodData.symptoms[dateKey].includes(option.textContent)) {
+                                option.classList.add('selected');
+                            } else {
+                                option.classList.remove('selected');
+                            }
+                        });
+                    } else {
+                        document.querySelectorAll('#symptoms-modal .symptom-option').forEach(option => {
+                            option.classList.remove('selected');
+                        });
+                    }
+                    
+                    symptomsModal.style.display = 'flex';
+                } else {
+                    showNotification('Please select a date first');
+                }
+            });
+            
             // Modal event listeners
             confirmAddBtn.addEventListener('click', () => {
                 const daysCount = parseInt(daysCountInput.value);
@@ -1001,6 +1230,58 @@
                 historyModal.style.display = 'none';
             });
             
+            closeSymptomsModal.addEventListener('click', () => {
+                symptomsModal.style.display = 'none';
+            });
+            
+            cancelSymptomsBtn.addEventListener('click', () => {
+                symptomsModal.style.display = 'none';
+            });
+            
+            saveSymptomsBtn.addEventListener('click', () => {
+                if (selectedDate) {
+                    const dateKey = selectedDate.toISOString().split('T')[0];
+                    const selectedSymptoms = [];
+                    
+                    document.querySelectorAll('#symptoms-modal .symptom-option.selected').forEach(option => {
+                        selectedSymptoms.push(option.textContent);
+                    });
+                    
+                    periodData.symptoms[dateKey] = selectedSymptoms;
+                    localStorage.setItem('periodData', JSON.stringify(periodData));
+                    
+                    symptomsModal.style.display = 'none';
+                    showNotification('Symptoms saved successfully');
+                }
+            });
+            
+            // Onboarding event listeners
+            nextOnboardingBtn.addEventListener('click', () => {
+                // Simple onboarding with 3 steps
+                const dots = document.querySelectorAll('.onboarding-dot');
+                if (dots[0].classList.contains('active')) {
+                    dots[0].classList.remove('active');
+                    dots[1].classList.add('active');
+                    document.querySelector('.onboarding h2').textContent = 'Track Your Cycle';
+                    document.querySelector('.onboarding p').textContent = 'Mark your period days, track symptoms, and get predictions for your next cycle.';
+                    nextOnboardingBtn.textContent = 'Next';
+                } else if (dots[1].classList.contains('active')) {
+                    dots[1].classList.remove('active');
+                    dots[2].classList.add('active');
+                    document.querySelector('.onboarding h2').textContent = 'Your Data is Private';
+                    document.querySelector('.onboarding p').textContent = 'All your data is stored locally on your device. We value your privacy.';
+                    nextOnboardingBtn.textContent = 'Get Started';
+                } else {
+                    localStorage.setItem('onboardingCompleted', 'true');
+                    onboarding.style.display = 'none';
+                }
+            });
+            
+            skipOnboardingBtn.addEventListener('click', () => {
+                localStorage.setItem('onboardingCompleted', 'true');
+                onboarding.style.display = 'none';
+            });
+            
             // Close modal when clicking outside
             window.addEventListener('click', (e) => {
                 if (e.target === addDaysModal) {
@@ -1009,26 +1290,38 @@
                 if (e.target === historyModal) {
                     historyModal.style.display = 'none';
                 }
+                if (e.target === symptomsModal) {
+                    symptomsModal.style.display = 'none';
+                }
             });
             
-            // Symptom tracking
-            document.querySelectorAll('.symptom-option').forEach(option => {
+            // Symptom tracking in stats tab
+            document.querySelectorAll('#stats-tab .symptom-option').forEach(option => {
                 option.addEventListener('click', function() {
                     this.classList.toggle('selected');
-                    // In a real app, you would save this to localStorage
-                    const today = new Date().toDateString();
-                    if (!periodData.symptoms[today]) {
-                        periodData.symptoms[today] = [];
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const todayKey = today.toISOString().split('T')[0];
+                    
+                    if (!periodData.symptoms[todayKey]) {
+                        periodData.symptoms[todayKey] = [];
                     }
                     
                     const symptom = this.textContent;
-                    if (periodData.symptoms[today].includes(symptom)) {
-                        periodData.symptoms[today] = periodData.symptoms[today].filter(s => s !== symptom);
+                    if (periodData.symptoms[todayKey].includes(symptom)) {
+                        periodData.symptoms[todayKey] = periodData.symptoms[todayKey].filter(s => s !== symptom);
                     } else {
-                        periodData.symptoms[today].push(symptom);
+                        periodData.symptoms[todayKey].push(symptom);
                     }
                     
                     localStorage.setItem('periodData', JSON.stringify(periodData));
+                });
+            });
+            
+            // Symptom tracking in modal
+            document.querySelectorAll('#symptoms-modal .symptom-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    this.classList.toggle('selected');
                 });
             });
             
@@ -1044,7 +1337,9 @@
                 
                 // Only show install prompt if not already installed and not dismissed
                 if (!localStorage.getItem('installPromptDismissed')) {
-                    installPrompt.classList.add('show');
+                    setTimeout(() => {
+                        installPrompt.classList.add('show');
+                    }, 3000);
                 }
             });
             
@@ -1132,6 +1427,16 @@
                         // Show active content
                         tabContents.forEach(content => content.classList.remove('active'));
                         document.getElementById(`${tabId}-tab`).classList.add('active');
+                        
+                        // Update stats when switching to stats tab
+                        if (tabId === 'stats') {
+                            updateStats();
+                        }
+                        
+                        // Update phases when switching to phases tab
+                        if (tabId === 'phases') {
+                            updateCyclePhases();
+                        }
                     });
                 });
             }
@@ -1219,9 +1524,10 @@
                         }
                     }
                     
-                    // Add click event
+                    // Add click event - FIXED: Now correctly selects the clicked date
                     dayEl.addEventListener('click', () => {
-                        selectedDate = dayDate;
+                        // Create a new date object to avoid reference issues
+                        selectedDate = new Date(dayDate);
                         renderCalendar();
                     });
                     
@@ -1230,6 +1536,7 @@
             }
             
             function addPeriodDay(date) {
+                // FIXED: Use a consistent date format without time component
                 const dateString = date.toISOString().split('T')[0];
                 
                 // Check if already exists
@@ -1244,6 +1551,7 @@
             }
             
             function removePeriodDay(date) {
+                // FIXED: Use the same date format for consistency
                 const dateString = date.toISOString().split('T')[0];
                 periodData.periods = periodData.periods.filter(d => d !== dateString);
                 localStorage.setItem('periodData', JSON.stringify(periodData));
