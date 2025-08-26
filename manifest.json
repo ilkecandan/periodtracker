@@ -1,11 +1,12 @@
 {
+  "id": "/",
   "name": "CycleSync Period Tracker",
   "short_name": "CycleSync",
   "description": "A comprehensive period tracking app with cycle phase information",
-  "start_url": "/",
+  "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ff6b6b",
+  "background_color": "#ffffff",
   "theme_color": "#ff6b6b",
   "orientation": "portrait-primary",
   "icons": [
@@ -51,7 +52,7 @@
       "type": "image/png"
     }
   ],
-  "splash_pages": null,
   "categories": ["health", "lifestyle"],
-  "lang": "en"
+  "lang": "en",
+  "prefer_related_applications": false
 }
