@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#FF7EC8">
+    <meta name="theme-color" content="#e91e63">
+    <meta name="description" content="Tempest Period Tracker - Track your menstrual cycle with predictions and insights">
     <title>Tempest Period Tracker</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌺</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #FF7EC8;
-            --secondary: #7E6CAB;
-            --follicular: #FFB6C1;
-            --ovulation: #FFA500;
-            --luteal: #87CEEB;
-            --period: #FF007F;
-            --light: #F9F5F0;
-            --dark: #333333;
-            --grey: #E5E5E5;
+            --primary: #e91e63;
+            --primary-light: #f8bbd0;
+            --secondary: #9c27b0;
+            --dark: #880e4f;
+            --light: #fce4ec;
+            --grey: #f5f5f5;
+            --text: #212121;
+            --text-light: #757575;
+            --ovulation: #4caf50;
+            --follicular: #2196f3;
+            --luteal: #ff9800;
+            --menstrual: #f44336;
+            --white: #ffffff;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -28,189 +35,258 @@
         }
 
         body {
-            background-color: var(--light);
-            color: var(--dark);
+            background-color: var(--grey);
+            color: var(--text);
             line-height: 1.6;
         }
 
-        .container {
+        .app-container {
             max-width: 100%;
-            padding: 1rem;
+            min-height: 100vh;
             margin: 0 auto;
+            background-color: var(--white);
+            position: relative;
+            padding-bottom: 70px;
         }
 
         header {
-            text-align: center;
-            padding: 1rem 0;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            border-radius: 0 0 20px 20px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
 
-        .subtitle {
+        .install-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
             font-size: 0.9rem;
-            opacity: 0.9;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
         }
 
-        .calendar {
-            background: white;
-            border-radius: 15px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        .install-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            padding: 15px;
+        }
+
+        .calendar-container {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 15px;
         }
 
-        .calendar-header button {
-            background: var(--primary);
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: var(--light);
             border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: bold;
         }
 
-        .calendar-grid {
+        .current-month {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
         }
 
-        .calendar-day-name {
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            padding: 0.5rem 0;
-            color: var(--secondary);
-        }
-
-        .calendar-day {
-            height: 45px;
+        .day {
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             cursor: pointer;
             position: relative;
-            transition: all 0.2s ease;
+            font-weight: 500;
+            transition: all 0.2s;
         }
 
-        .calendar-day:hover {
-            background-color: var(--grey);
+        .day:hover {
+            background: var(--light);
         }
 
-        .calendar-day.today {
+        .day.today {
             border: 2px solid var(--primary);
         }
 
-        .calendar-day.period {
-            background-color: var(--period);
+        .day.period {
+            background-color: var(--menstrual);
             color: white;
         }
 
-        .calendar-day.ovulation {
+        .day.ovulation {
             background-color: var(--ovulation);
             color: white;
         }
 
-        .calendar-day.follicular {
+        .day.follicular {
             background-color: var(--follicular);
+            color: white;
         }
 
-        .calendar-day.luteal {
+        .day.luteal {
             background-color: var(--luteal);
+            color: white;
         }
 
-        .calendar-day.predicted {
-            opacity: 0.7;
+        .day.predicted-period {
+            background-color: var(--primary-light);
         }
 
-        .phase-info {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        .day.selected {
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .day .dot {
+            position: absolute;
+            bottom: 3px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--primary);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .predictions {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .phase-card {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .phase-card.menstrual {
+            background: var(--menstrual);
+        }
+
+        .phase-card.follicular {
+            background: var(--follicular);
+        }
+
+        .phase-card.ovulation {
+            background: var(--ovulation);
+        }
+
+        .phase-card.luteal {
+            background: var(--luteal);
         }
 
         .phase-title {
-            color: var(--secondary);
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-
-        .phase-description {
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
-
-        .phase-color {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .color-box {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-
-        .prediction-card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .prediction-title {
-            color: var(--secondary);
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-
-        .prediction-item {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--grey);
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .phase-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .phase-dates {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .phase-desc {
+            font-size: 0.95rem;
         }
 
         .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        button {
-            padding: 1rem;
+        .action-btn {
+            padding: 12px;
+            border-radius: 10px;
             border: none;
-            border-radius: 12px;
-            font-weight: bold;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
         }
 
         .primary-btn {
@@ -219,398 +295,572 @@
         }
 
         .secondary-btn {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .install-btn {
-            background: var(--secondary);
-            color: white;
-            display: none;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        footer {
-            text-align: center;
-            padding: 1.5rem 0;
-            color: var(--dark);
-            font-size: 0.9rem;
-        }
-
-        footer a {
+            background: var(--light);
             color: var(--primary);
-            text-decoration: none;
-            margin: 0 0.5rem;
         }
 
-        .day-dot {
-            position: absolute;
-            bottom: 5px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--primary);
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
         }
 
-        /* Modal */
         .modal {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
             align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
         }
 
         .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 15px;
+            background: white;
             width: 90%;
             max-width: 400px;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
         .modal-title {
-            margin-bottom: 1rem;
-            color: var(--secondary);
+            font-size: 1.3rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-text {
+            margin-bottom: 15px;
         }
 
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 1.5rem;
+            gap: 10px;
         }
 
-        /* Responsive */
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .cancel-btn {
+            background: var(--grey);
+            color: var(--text);
+        }
+
+        .confirm-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        footer {
+            background: var(--light);
+            padding: 20px 15px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .footer-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .copyright {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .hidden {
+            display: none;
+        }
+
         @media (min-width: 768px) {
-            .container {
+            .app-container {
                 max-width: 500px;
+                margin: 20px auto;
+                min-height: unset;
+                border-radius: 15px;
+                overflow: hidden;
+                box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+            }
+
+            footer {
+                position: static;
+                border-bottom-left-radius: 15px;
+                border-bottom-right-radius: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
         <header>
-            <h1>Tempest Period Tracker</h1>
-            <p class="subtitle">Track your cycle with confidence and ease</p>
+            <div class="header-content">
+                <h1>Tempest Period Tracker</h1>
+                <button id="installButton" class="install-btn hidden">
+                    <i class="fas fa-download"></i> Install
+                </button>
+            </div>
         </header>
 
-        <button id="installButton" class="install-btn">Install Tempest App</button>
+        <main class="main-content">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="nav-btn" id="prevMonth">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="nav-btn" id="nextMonth">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="current-month" id="currentMonth">September 2023</div>
+                </div>
 
-        <div class="calendar">
-            <div class="calendar-header">
-                <button id="prevMonth">&lt;</button>
-                <h2 id="currentMonth">June 2023</h2>
-                <button id="nextMonth">&gt;</button>
-            </div>
-            <div class="calendar-grid" id="calendarGrid">
-                <!-- Calendar days will be generated here -->
-            </div>
-        </div>
+                <div class="weekdays">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                </div>
 
-        <div class="phase-info">
-            <h3 class="phase-title" id="phaseTitle">Today's Phase</h3>
-            <p class="phase-description" id="phaseDescription">Select a day to see information about your cycle phase.</p>
-            
-            <div class="phase-color">
-                <div class="color-box" style="background-color: var(--period);"></div>
-                <span>Period</span>
+                <div class="days-grid" id="daysGrid">
+                    <!-- Calendar days will be generated here -->
+                </div>
             </div>
-            <div class="phase-color">
-                <div class="color-box" style="background-color: var(--follicular);"></div>
-                <span>Follicular Phase</span>
-            </div>
-            <div class="phase-color">
-                <div class="color-box" style="background-color: var(--ovulation);"></div>
-                <span>Ovulation</span>
-            </div>
-            <div class="phase-color">
-                <div class="color-box" style="background-color: var(--luteal);"></div>
-                <span>Luteal Phase</span>
-            </div>
-        </div>
 
-        <div class="prediction-card">
-            <h3 class="prediction-title">Predictions</h3>
-            <div class="prediction-item">
-                <span>Next period starts:</span>
-                <span id="nextPeriodDate">-</span>
-            </div>
-            <div class="prediction-item">
-                <span>Ovulation window:</span>
-                <span id="ovulationDate">-</span>
-            </div>
-            <div class="prediction-item">
-                <span>Fertile window:</span>
-                <span id="fertileDate">-</span>
-            </div>
-        </div>
+            <div class="predictions">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i> Cycle Overview
+                </h2>
 
-        <div class="actions">
-            <button class="primary-btn" id="logPeriod">Log Period Start</button>
-            <button class="secondary-btn" id="viewHistory">View Period History</button>
-        </div>
+                <div class="phase-card menstrual">
+                    <div class="phase-title">
+                        <span class="phase-name">Menstrual Phase</span>
+                        <span class="phase-dates">Sep 1 - Sep 5</span>
+                    </div>
+                    <p class="phase-desc">Your period is happening. Your body is shedding the uterine lining that built up during the last cycle.</p>
+                </div>
+
+                <div class="phase-card follicular">
+                    <div class="phase-title">
+                        <span class="phase-name">Follicular Phase</span>
+                        <span class="phase-dates">Sep 6 - Sep 13</span>
+                    </div>
+                    <p class="phase-desc">Your ovaries are preparing an egg for release. Estrogen levels rise, leading to increased energy.</p>
+                </div>
+
+                <div class="phase-card ovulation">
+                    <div class="phase-title">
+                        <span class="phase-name">Ovulation</span>
+                        <span class="phase-dates">Sep 14 - Sep 16</span>
+                    </div>
+                    <p class="phase-desc">An egg is released from your ovary. This is your most fertile window if you're trying to conceive.</p>
+                </div>
+
+                <div class="phase-card luteal">
+                    <div class="phase-title">
+                        <span class="phase-name">Luteal Phase</span>
+                        <span class="phase-dates">Sep 17 - Sep 28</span>
+                    </div>
+                    <p class="phase-desc">Your body prepares for a potential pregnancy. Progesterone rises, which may cause PMS symptoms.</p>
+                </div>
+
+                <div class="actions">
+                    <button class="action-btn primary-btn" id="addPeriodBtn">
+                        <i class="fas fa-plus"></i> Add Period
+                    </button>
+                    <button class="action-btn secondary-btn" id="viewHistoryBtn">
+                        <i class="fas fa-history"></i> History
+                    </button>
+                </div>
+            </div>
+        </main>
 
         <footer>
-            <p>Made with ❤️ by <a href="https://tempestlabs.space" target="_blank">Tempest Labs</a></p>
-            <p>Support this project: <a href="https://buymeacoffee.com/ilkecandan" target="_blank">Buy Me a Coffee</a></p>
+            <div class="footer-links">
+                <a href="https://tempestlabs.space" class="footer-link" target="_blank">
+                    <i class="fas fa-globe"></i> Website
+                </a>
+                <a href="https://buymeacoffee.com/ilkecandan" class="footer-link" target="_blank">
+                    <i class="fas fa-coffee"></i> Support
+                </a>
+            </div>
+            <div class="copyright">
+                &copy; 2023 Tempest Labs. All rights reserved.
+            </div>
         </footer>
     </div>
 
-    <!-- Period History Modal -->
-    <div class="modal" id="historyModal">
+    <!-- Add Period Modal -->
+    <div class="modal" id="periodModal">
         <div class="modal-content">
-            <h3 class="modal-title">Period History</h3>
-            <div id="historyList">
-                <!-- History items will be added here -->
+            <div class="modal-header">
+                <h3 class="modal-title">Add Period</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Are you sure you want to mark <span id="selectedDate">September 20, 2023</span> as the start of your period?</p>
+                <p class="modal-text">This will update your cycle predictions.</p>
             </div>
             <div class="modal-actions">
-                <button class="secondary-btn" id="closeHistory">Close</button>
+                <button class="modal-btn cancel-btn">Cancel</button>
+                <button class="modal-btn confirm-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Install Prompt Modal -->
+    <div class="modal" id="installModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Install Tempest Tracker</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Install Tempest Period Tracker on your home screen for quick and easy access!</p>
+                <p class="modal-text">You can track your cycle even when offline.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel-btn">Not Now</button>
+                <button class="modal-btn confirm-btn" id="installConfirm">Install</button>
             </div>
         </div>
     </div>
 
     <script>
+        // DOM Elements
+        const daysGrid = document.getElementById('daysGrid');
+        const currentMonthElement = document.getElementById('currentMonth');
+        const prevMonthButton = document.getElementById('prevMonth');
+        const nextMonthButton = document.getElementById('nextMonth');
+        const addPeriodBtn = document.getElementById('addPeriodBtn');
+        const periodModal = document.getElementById('periodModal');
+        const installModal = document.getElementById('installModal');
+        const installButton = document.getElementById('installButton');
+        const installConfirm = document.getElementById('installConfirm');
+        const selectedDateElement = document.getElementById('selectedDate');
+        
+        // Close modal buttons
+        const closeModalButtons = document.querySelectorAll('.close-modal, .cancel-btn');
+        
         // App state
         let currentDate = new Date();
-        let periodStartDates = JSON.parse(localStorage.getItem('periodStartDates')) || [];
-        let deferredPrompt;
-        const installButton = document.getElementById('installButton');
-
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        let selectedDate = null;
+        let deferredPrompt = null;
+        
+        // Sample data (in a real app, this would come from local storage)
+        let periodData = [
+            { start: new Date(2023, 8, 1), end: new Date(2023, 8, 5) },
+            { start: new Date(2023, 7, 3), end: new Date(2023, 7, 7) },
+            { start: new Date(2023, 6, 5), end: new Date(2023, 6, 9) }
+        ];
+        
         // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            initCalendar();
-            updatePredictions();
+        function init() {
+            generateCalendar(currentMonth, currentYear);
+            loadPeriodData();
             checkInstallPrompt();
-        });
-
-        // Calendar functionality
-        function initCalendar() {
-            renderCalendar(currentDate);
-            
-            document.getElementById('prevMonth').addEventListener('click', () => {
-                currentDate.setMonth(currentDate.getMonth() - 1);
-                renderCalendar(currentDate);
-            });
-            
-            document.getElementById('nextMonth').addEventListener('click', () => {
-                currentDate.setMonth(currentDate.getMonth() + 1);
-                renderCalendar(currentDate);
-            });
-            
-            document.getElementById('logPeriod').addEventListener('click', logPeriodStart);
-            document.getElementById('viewHistory').addEventListener('click', showHistory);
-            document.getElementById('closeHistory').addEventListener('click', () => {
-                document.getElementById('historyModal').style.display = 'none';
-            });
         }
-
-        function renderCalendar(date) {
-            const calendarGrid = document.getElementById('calendarGrid');
-            const monthYearElement = document.getElementById('currentMonth');
-            
+        
+        // Generate calendar for given month and year
+        function generateCalendar(month, year) {
             // Clear previous calendar
-            calendarGrid.innerHTML = '';
+            daysGrid.innerHTML = '';
             
-            // Set month and year title
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                               'July', 'August', 'September', 'October', 'November', 'December'];
-            monthYearElement.textContent = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-            
-            // Add day names
-            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayNames.forEach(day => {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day-name';
-                dayElement.textContent = day;
-                calendarGrid.appendChild(dayElement);
-            });
+            // Update current month display
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            currentMonthElement.textContent = `${monthNames[month]} ${year}`;
             
             // Get first day of month and total days
-            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
             
-            // Add empty days for first week
+            // Create previous month's days
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
             for (let i = 0; i < firstDay; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'calendar-day';
-                calendarGrid.appendChild(emptyDay);
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('day', 'prev-month');
+                dayElement.textContent = daysInPrevMonth - firstDay + i + 1;
+                daysGrid.appendChild(dayElement);
             }
             
-            // Add days of the month
+            // Create current month's days
             const today = new Date();
             for (let i = 1; i <= daysInMonth; i++) {
                 const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day';
+                dayElement.classList.add('day');
                 dayElement.textContent = i;
                 
-                const dayDate = new Date(date.getFullYear(), date.getMonth(), i);
-                
                 // Check if today
-                if (dayDate.toDateString() === today.toDateString()) {
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                     dayElement.classList.add('today');
                 }
                 
-                // Check if period start date
-                const isPeriodStart = periodStartDates.some(d => {
-                    const periodDate = new Date(d);
-                    return periodDate.toDateString() === dayDate.toDateString();
-                });
-                
-                if (isPeriodStart) {
+                // Check if period day
+                const cellDate = new Date(year, month, i);
+                if (isPeriodDay(cellDate)) {
                     dayElement.classList.add('period');
                 }
                 
-                // Add click event
-                dayElement.addEventListener('click', () => {
-                    selectDay(dayDate);
-                });
+                // Check if predicted phase
+                const phase = getPhaseForDate(cellDate);
+                if (phase) {
+                    dayElement.classList.add(phase);
+                }
                 
-                calendarGrid.appendChild(dayElement);
+                // Add event listener
+                dayElement.addEventListener('click', () => selectDate(cellDate));
+                
+                daysGrid.appendChild(dayElement);
+            }
+            
+            // Fill remaining cells with next month's days
+            const totalCells = 42; // 6 weeks of 7 days
+            const remainingCells = totalCells - (firstDay + daysInMonth);
+            for (let i = 1; i <= remainingCells; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('day', 'next-month');
+                dayElement.textContent = i;
+                daysGrid.appendChild(dayElement);
             }
         }
-
-        function selectDay(date) {
-            // For now, just show phase info for the selected day
-            showPhaseInfo(date);
+        
+        // Check if a date is during a period
+        function isPeriodDay(date) {
+            return periodData.some(period => {
+                return date >= period.start && date <= period.end;
+            });
         }
-
-        function showPhaseInfo(date) {
-            const phaseTitle = document.getElementById('phaseTitle');
-            const phaseDescription = document.getElementById('phaseDescription');
+        
+        // Get phase for a date (simplified prediction)
+        function getPhaseForDate(date) {
+            // This is a simplified prediction algorithm
+            // In a real app, this would be more sophisticated
             
-            // This is a simplified version - a real app would calculate based on cycle data
-            const dayOfMonth = date.getDate();
+            // Find the most recent period
+            const lastPeriod = periodData[0]; // Simplified - would need to find the most recent
             
-            if (dayOfMonth <= 7) {
-                phaseTitle.textContent = "Follicular Phase";
-                phaseDescription.textContent = "The follicular phase starts on the first day of your period and ends with ovulation. Your ovaries are preparing an egg for release.";
-            } else if (dayOfMonth <= 14) {
-                phaseTitle.textContent = "Ovulation Phase";
-                phaseDescription.textContent = "Ovulation occurs when your ovary releases a mature egg. This is when you're most fertile.";
-            } else if (dayOfMonth <= 28) {
-                phaseTitle.textContent = "Luteal Phase";
-                phaseDescription.textContent = "The luteal phase begins after ovulation and ends with the start of your period. Your body is preparing for a potential pregnancy.";
-            } else {
-                phaseTitle.textContent = "Menstrual Phase";
-                phaseDescription.textContent = "Your period occurs when the lining of your uterus sheds. This typically lasts 3-7 days.";
-            }
+            if (!lastPeriod) return null;
+            
+            const cycleStart = new Date(lastPeriod.start);
+            const dayDiff = Math.floor((date - cycleStart) / (1000 * 60 * 60 * 24));
+            
+            // Assuming a 28-day cycle
+            if (dayDiff >= 0 && dayDiff < 5) return 'menstrual';
+            if (dayDiff >= 5 && dayDiff < 13) return 'follicular';
+            if (dayDiff >= 13 && dayDiff < 16) return 'ovulation';
+            if (dayDiff >= 16 && dayDiff < 28) return 'luteal';
+            
+            return null;
         }
-
-        function logPeriodStart() {
-            const today = new Date();
-            const dateString = today.toISOString().split('T')[0];
-            
-            // Check if already logged today
-            if (!periodStartDates.includes(dateString)) {
-                periodStartDates.push(dateString);
-                localStorage.setItem('periodStartDates', JSON.stringify(periodStartDates));
-                
-                // Re-render calendar and update predictions
-                renderCalendar(currentDate);
-                updatePredictions();
-                
-                alert('Period start logged for today!');
-            } else {
-                alert('You already logged your period start for today.');
-            }
+        
+        // Handle date selection
+        function selectDate(date) {
+            selectedDate = date;
+            const formattedDate = date.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            selectedDateElement.textContent = formattedDate;
+            periodModal.classList.add('active');
         }
-
-        function updatePredictions() {
-            if (periodStartDates.length > 0) {
-                // Simple prediction algorithm (assuming 28-day cycle)
-                const lastPeriod = new Date(periodStartDates[periodStartDates.length - 1]);
-                const nextPeriod = new Date(lastPeriod);
-                nextPeriod.setDate(nextPeriod.getDate() + 28);
-                
-                const ovulationDate = new Date(lastPeriod);
-                ovulationDate.setDate(ovulationDate.getDate() + 14);
-                
-                const fertileStart = new Date(ovulationDate);
-                fertileStart.setDate(fertileStart.getDate() - 3);
-                
-                const fertileEnd = new Date(ovulationDate);
-                fertileEnd.setDate(fertileEnd.getDate() + 1);
-                
-                document.getElementById('nextPeriodDate').textContent = nextPeriod.toDateString();
-                document.getElementById('ovulationDate').textContent = ovulationDate.toDateString();
-                document.getElementById('fertileDate').textContent = `${fertileStart.toDateString()} - ${fertileEnd.toDateString()}`;
-            }
-        }
-
-        function showHistory() {
-            const historyList = document.getElementById('historyList');
-            historyList.innerHTML = '';
-            
-            if (periodStartDates.length === 0) {
-                historyList.innerHTML = '<p>No period history yet. Start tracking to see your history here.</p>';
-            } else {
-                periodStartDates.forEach(date => {
-                    const historyItem = document.createElement('div');
-                    historyItem.className = 'prediction-item';
-                    historyItem.textContent = new Date(date).toDateString();
-                    historyList.appendChild(historyItem);
+        
+        // Load period data from local storage
+        function loadPeriodData() {
+            const savedData = localStorage.getItem('tempestPeriodData');
+            if (savedData) {
+                periodData = JSON.parse(savedData).map(period => {
+                    return {
+                        start: new Date(period.start),
+                        end: new Date(period.end)
+                    };
                 });
             }
-            
-            document.getElementById('historyModal').style.display = 'flex';
         }
-
-        // PWA Installation functionality
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show the install button
-            installButton.style.display = 'block';
+        
+        // Save period data to local storage
+        function savePeriodData() {
+            localStorage.setItem('tempestPeriodData', JSON.stringify(periodData));
+        }
+        
+        // Add a new period
+        function addPeriod(startDate) {
+            // For simplicity, assume 5-day period
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 4);
+            
+            periodData.unshift({
+                start: startDate,
+                end: endDate
+            });
+            
+            // Keep only the last 12 periods
+            if (periodData.length > 12) {
+                periodData = periodData.slice(0, 12);
+            }
+            
+            savePeriodData();
+            generateCalendar(currentMonth, currentYear);
+        }
+        
+        // Check if we should show install prompt
+        function checkInstallPrompt() {
+            const dismissed = localStorage.getItem('installDismissed');
+            if (!dismissed && deferredPrompt) {
+                setTimeout(() => {
+                    installModal.classList.add('active');
+                }, 3000);
+            }
+        }
+        
+        // Event Listeners
+        prevMonthButton.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            generateCalendar(currentMonth, currentYear);
         });
-
-        installButton.addEventListener('click', async () => {
+        
+        nextMonthButton.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar(currentMonth, currentYear);
+        });
+        
+        addPeriodBtn.addEventListener('click', () => {
+            selectDate(new Date());
+        });
+        
+        // Close modals
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                periodModal.classList.remove('active');
+                installModal.classList.remove('active');
+            });
+        });
+        
+        // Confirm period addition
+        document.querySelector('#periodModal .confirm-btn').addEventListener('click', () => {
+            addPeriod(selectedDate);
+            periodModal.classList.remove('active');
+        });
+        
+        // Handle install confirmation
+        installConfirm.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // Show the install prompt
                 deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     console.log('User accepted the install prompt');
-                } else {
-                    console.log('User dismissed the install prompt');
                 }
-                // We've used the prompt, and can't use it again, throw it away
                 deferredPrompt = null;
-                // Hide the install button
-                installButton.style.display = 'none';
+                installModal.classList.remove('active');
             }
         });
-
-        function checkInstallPrompt() {
-            // Check if the app is already installed
-            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-                installButton.style.display = 'none';
-            }
-        }
-
-        // Register service worker for PWA functionality
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(
-                    function(registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    },
-                    function(err) {
-                        console.log('ServiceWorker registration failed: ', err);
+        
+        // PWA Installation
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.classList.remove('hidden');
+            
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
                     }
-                );
+                    deferredPrompt = null;
+                }
+            });
+        });
+        
+        // Track if user dismissed install prompt
+        document.querySelector('#installModal .cancel-btn').addEventListener('click', () => {
+            localStorage.setItem('installDismissed', 'true');
+        });
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
             });
         }
+        
+        // Initialize the app
+        init();
     </script>
 </body>
 </html>
