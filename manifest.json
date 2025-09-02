@@ -3,7 +3,7 @@
   "name": "Tempest Period Tracker",
   "short_name": "Tempest",
   "description": "Track your menstrual cycle with predictions and insights",
-  "start_url": "/index.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
