@@ -584,283 +584,371 @@
         </div>
     </div>
 
+
     <script>
-        // DOM Elements
-        const daysGrid = document.getElementById('daysGrid');
-        const currentMonthElement = document.getElementById('currentMonth');
-        const prevMonthButton = document.getElementById('prevMonth');
-        const nextMonthButton = document.getElementById('nextMonth');
-        const addPeriodBtn = document.getElementById('addPeriodBtn');
-        const periodModal = document.getElementById('periodModal');
-        const installModal = document.getElementById('installModal');
-        const installButton = document.getElementById('installButton');
-        const installConfirm = document.getElementById('installConfirm');
-        const selectedDateElement = document.getElementById('selectedDate');
+    // DOM Elements
+    const daysGrid = document.getElementById('daysGrid');
+    const currentMonthElement = document.getElementById('currentMonth');
+    const prevMonthButton = document.getElementById('prevMonth');
+    const nextMonthButton = document.getElementById('nextMonth');
+    const addPeriodBtn = document.getElementById('addPeriodBtn');
+    const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+    const periodModal = document.getElementById('periodModal');
+    const installModal = document.getElementById('installModal');
+    const installButton = document.getElementById('installButton');
+    const installConfirm = document.getElementById('installConfirm');
+    const selectedDateElement = document.getElementById('selectedDate');
+    
+    // Close modal buttons
+    const closeModalButtons = document.querySelectorAll('.close-modal, .cancel-btn');
+    
+    // App state
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+    let selectedDate = null;
+    let deferredPrompt = null;
+    
+    // Sample data (in a real app, this would come from local storage)
+    let periodData = [];
+    
+    // Initialize the app
+    function init() {
+        loadPeriodData();
+        generateCalendar(currentMonth, currentYear);
+        updateCycleOverview();
+        checkInstallPrompt();
+        checkIfAppIsInstalled();
+    }
+    
+    // Generate calendar for given month and year
+    function generateCalendar(month, year) {
+        // Clear previous calendar
+        daysGrid.innerHTML = '';
         
-        // Close modal buttons
-        const closeModalButtons = document.querySelectorAll('.close-modal, .cancel-btn');
+        // Update current month display
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        currentMonthElement.textContent = `${monthNames[month]} ${year}`;
         
-        // App state
-        let currentDate = new Date();
-        let currentMonth = currentDate.getMonth();
-        let currentYear = currentDate.getFullYear();
-        let selectedDate = null;
-        let deferredPrompt = null;
+        // Get first day of month and total days
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
         
-        // Sample data (in a real app, this would come from local storage)
-        let periodData = [
-            { start: new Date(2023, 8, 1), end: new Date(2023, 8, 5) },
-            { start: new Date(2023, 7, 3), end: new Date(2023, 7, 7) },
-            { start: new Date(2023, 6, 5), end: new Date(2023, 6, 9) }
-        ];
-        
-        // Initialize the app
-        function init() {
-            generateCalendar(currentMonth, currentYear);
-            loadPeriodData();
-            checkInstallPrompt();
+        // Create previous month's days
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+        for (let i = 0; i < firstDay; i++) {
+            const dayElement = document.createElement('div');
+            dayElement.classList.add('day', 'prev-month');
+            dayElement.textContent = daysInPrevMonth - firstDay + i + 1;
+            daysGrid.appendChild(dayElement);
         }
         
-        // Generate calendar for given month and year
-        function generateCalendar(month, year) {
-            // Clear previous calendar
-            daysGrid.innerHTML = '';
+        // Create current month's days
+        const today = new Date();
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dayElement = document.createElement('div');
+            dayElement.classList.add('day');
+            dayElement.textContent = i;
             
-            // Update current month display
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            currentMonthElement.textContent = `${monthNames[month]} ${year}`;
-            
-            // Get first day of month and total days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            // Create previous month's days
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            for (let i = 0; i < firstDay; i++) {
-                const dayElement = document.createElement('div');
-                dayElement.classList.add('day', 'prev-month');
-                dayElement.textContent = daysInPrevMonth - firstDay + i + 1;
-                daysGrid.appendChild(dayElement);
+            // Check if today
+            const cellDate = new Date(year, month, i);
+            if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                dayElement.classList.add('today');
             }
             
-            // Create current month's days
-            const today = new Date();
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dayElement = document.createElement('div');
-                dayElement.classList.add('day');
-                dayElement.textContent = i;
-                
-                // Check if today
-                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                    dayElement.classList.add('today');
-                }
-                
-                // Check if period day
-                const cellDate = new Date(year, month, i);
-                if (isPeriodDay(cellDate)) {
-                    dayElement.classList.add('period');
-                }
-                
-                // Check if predicted phase
-                const phase = getPhaseForDate(cellDate);
-                if (phase) {
-                    dayElement.classList.add(phase);
-                }
-                
-                // Add event listener
-                dayElement.addEventListener('click', () => selectDate(cellDate));
-                
-                daysGrid.appendChild(dayElement);
+            // Check if period day
+            if (isPeriodDay(cellDate)) {
+                dayElement.classList.add('period');
             }
             
-            // Fill remaining cells with next month's days
-            const totalCells = 42; // 6 weeks of 7 days
-            const remainingCells = totalCells - (firstDay + daysInMonth);
-            for (let i = 1; i <= remainingCells; i++) {
-                const dayElement = document.createElement('div');
-                dayElement.classList.add('day', 'next-month');
-                dayElement.textContent = i;
-                daysGrid.appendChild(dayElement);
-            }
-        }
-        
-        // Check if a date is during a period
-        function isPeriodDay(date) {
-            return periodData.some(period => {
-                return date >= period.start && date <= period.end;
-            });
-        }
-        
-        // Get phase for a date (simplified prediction)
-        function getPhaseForDate(date) {
-            // This is a simplified prediction algorithm
-            // In a real app, this would be more sophisticated
-            
-            // Find the most recent period
-            const lastPeriod = periodData[0]; // Simplified - would need to find the most recent
-            
-            if (!lastPeriod) return null;
-            
-            const cycleStart = new Date(lastPeriod.start);
-            const dayDiff = Math.floor((date - cycleStart) / (1000 * 60 * 60 * 24));
-            
-            // Assuming a 28-day cycle
-            if (dayDiff >= 0 && dayDiff < 5) return 'menstrual';
-            if (dayDiff >= 5 && dayDiff < 13) return 'follicular';
-            if (dayDiff >= 13 && dayDiff < 16) return 'ovulation';
-            if (dayDiff >= 16 && dayDiff < 28) return 'luteal';
-            
-            return null;
-        }
-        
-        // Handle date selection
-        function selectDate(date) {
-            selectedDate = date;
-            const formattedDate = date.toLocaleDateString('en-US', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric' 
-            });
-            selectedDateElement.textContent = formattedDate;
-            periodModal.classList.add('active');
-        }
-        
-        // Load period data from local storage
-        function loadPeriodData() {
-            const savedData = localStorage.getItem('tempestPeriodData');
-            if (savedData) {
-                periodData = JSON.parse(savedData).map(period => {
-                    return {
-                        start: new Date(period.start),
-                        end: new Date(period.end)
-                    };
-                });
-            }
-        }
-        
-        // Save period data to local storage
-        function savePeriodData() {
-            localStorage.setItem('tempestPeriodData', JSON.stringify(periodData));
-        }
-        
-        // Add a new period
-        function addPeriod(startDate) {
-            // For simplicity, assume 5-day period
-            const endDate = new Date(startDate);
-            endDate.setDate(endDate.getDate() + 4);
-            
-            periodData.unshift({
-                start: startDate,
-                end: endDate
-            });
-            
-            // Keep only the last 12 periods
-            if (periodData.length > 12) {
-                periodData = periodData.slice(0, 12);
+            // Check if predicted phase
+            const phase = getPhaseForDate(cellDate);
+            if (phase) {
+                dayElement.classList.add(phase);
             }
             
+            // Add event listener
+            dayElement.addEventListener('click', () => selectDate(cellDate));
+            
+            daysGrid.appendChild(dayElement);
+        }
+        
+        // Fill remaining cells with next month's days
+        const totalCells = 42; // 6 weeks of 7 days
+        const remainingCells = totalCells - (firstDay + daysInMonth);
+        for (let i = 1; i <= remainingCells; i++) {
+            const dayElement = document.createElement('div');
+            dayElement.classList.add('day', 'next-month');
+            dayElement.textContent = i;
+            daysGrid.appendChild(dayElement);
+        }
+    }
+    
+    // Check if a date is during a period
+    function isPeriodDay(date) {
+        return periodData.some(period => {
+            const start = new Date(period.start);
+            const end = new Date(period.end);
+            return date >= start && date <= end;
+        });
+    }
+    
+    // Get phase for a date (simplified prediction)
+    function getPhaseForDate(date) {
+        if (periodData.length === 0) return null;
+        
+        // Find the most recent period
+        const lastPeriod = periodData.reduce((latest, period) => {
+            const periodDate = new Date(period.start);
+            return (!latest || periodDate > new Date(latest.start)) ? period : latest;
+        }, null);
+        
+        if (!lastPeriod) return null;
+        
+        const cycleStart = new Date(lastPeriod.start);
+        const dayDiff = Math.floor((date - cycleStart) / (1000 * 60 * 60 * 24));
+        
+        // Assuming a 28-day cycle
+        if (dayDiff >= 0 && dayDiff < 5) return 'menstrual';
+        if (dayDiff >= 5 && dayDiff < 13) return 'follicular';
+        if (dayDiff >= 13 && dayDiff < 16) return 'ovulation';
+        if (dayDiff >= 16 && dayDiff < 28) return 'luteal';
+        
+        return null;
+    }
+    
+    // Update cycle overview with predictions
+    function updateCycleOverview() {
+        if (periodData.length === 0) return;
+        
+        const lastPeriod = periodData.reduce((latest, period) => {
+            const periodDate = new Date(period.start);
+            return (!latest || periodDate > new Date(latest.start)) ? period : latest;
+        }, null);
+        
+        if (!lastPeriod) return;
+        
+        const lastStart = new Date(lastPeriod.start);
+        const menstrualStart = new Date(lastStart);
+        const follicularStart = new Date(lastStart);
+        follicularStart.setDate(follicularStart.getDate() + 5);
+        const ovulationStart = new Date(lastStart);
+        ovulationStart.setDate(ovulationStart.getDate() + 13);
+        const lutealStart = new Date(lastStart);
+        lutealStart.setDate(lutealStart.getDate() + 16);
+        const nextPeriodStart = new Date(lastStart);
+        nextPeriodStart.setDate(nextPeriodStart.getDate() + 28);
+        
+        // Update phase cards with dates
+        document.querySelector('.phase-card.menstrual .phase-dates').textContent = 
+            formatDateRange(menstrualStart, 5);
+        document.querySelector('.phase-card.follicular .phase-dates').textContent = 
+            formatDateRange(follicularStart, 8);
+        document.querySelector('.phase-card.ovulation .phase-dates').textContent = 
+            formatDateRange(ovulationStart, 3);
+        document.querySelector('.phase-card.luteal .phase-dates').textContent = 
+            formatDateRange(lutealStart, 12);
+    }
+    
+    // Format date range for display
+    function formatDateRange(startDate, duration) {
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + duration - 1);
+        
+        const options = { month: 'short', day: 'numeric' };
+        return `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
+    }
+    
+    // Handle date selection
+    function selectDate(date) {
+        selectedDate = date;
+        const formattedDate = date.toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric' 
+        });
+        selectedDateElement.textContent = formattedDate;
+        periodModal.classList.add('active');
+    }
+    
+    // Load period data from local storage
+    function loadPeriodData() {
+        const savedData = localStorage.getItem('tempestPeriodData');
+        if (savedData) {
+            periodData = JSON.parse(savedData);
+        } else {
+            // Default sample data if none exists
+            periodData = [
+                { start: new Date(2023, 8, 1).toISOString(), end: new Date(2023, 8, 5).toISOString() },
+                { start: new Date(2023, 7, 3).toISOString(), end: new Date(2023, 7, 7).toISOString() },
+                { start: new Date(2023, 6, 5).toISOString(), end: new Date(2023, 6, 9).toISOString() }
+            ];
             savePeriodData();
-            generateCalendar(currentMonth, currentYear);
+        }
+    }
+    
+    // Save period data to local storage
+    function savePeriodData() {
+        localStorage.setItem('tempestPeriodData', JSON.stringify(periodData));
+    }
+    
+    // Add a new period
+    function addPeriod(startDate) {
+        // For simplicity, assume 5-day period
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 4);
+        
+        periodData.unshift({
+            start: startDate.toISOString(),
+            end: endDate.toISOString()
+        });
+        
+        // Keep only the last 12 periods
+        if (periodData.length > 12) {
+            periodData = periodData.slice(0, 12);
         }
         
-        // Check if we should show install prompt
-        function checkInstallPrompt() {
-            const dismissed = localStorage.getItem('installDismissed');
-            if (!dismissed && deferredPrompt) {
-                setTimeout(() => {
-                    installModal.classList.add('active');
-                }, 3000);
-            }
+        savePeriodData();
+        generateCalendar(currentMonth, currentYear);
+        updateCycleOverview();
+    }
+    
+    // View period history
+    function viewHistory() {
+        alert('Period History:\n\n' + periodData.map((period, index) => {
+            const start = new Date(period.start);
+            const end = new Date(period.end);
+            return `${index + 1}. ${start.toDateString()} to ${end.toDateString()}`;
+        }).join('\n'));
+    }
+    
+    // Check if we should show install prompt
+    function checkInstallPrompt() {
+        const dismissed = localStorage.getItem('installDismissed');
+        const installed = localStorage.getItem('appInstalled');
+        
+        if (!dismissed && !installed && deferredPrompt) {
+            setTimeout(() => {
+                installModal.classList.add('active');
+            }, 3000);
         }
-        
-        // Event Listeners
-        prevMonthButton.addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            generateCalendar(currentMonth, currentYear);
-        });
-        
-        nextMonthButton.addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            generateCalendar(currentMonth, currentYear);
-        });
-        
-        addPeriodBtn.addEventListener('click', () => {
-            selectDate(new Date());
-        });
-        
-        // Close modals
-        closeModalButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                periodModal.classList.remove('active');
-                installModal.classList.remove('active');
-            });
-        });
-        
-        // Confirm period addition
-        document.querySelector('#periodModal .confirm-btn').addEventListener('click', () => {
-            addPeriod(selectedDate);
+    }
+    
+    // Check if app is already installed
+    function checkIfAppIsInstalled() {
+        if (window.matchMedia('(display-mode: standalone)').matches || 
+            window.navigator.standalone === true) {
+            localStorage.setItem('appInstalled', 'true');
+            installButton.classList.add('hidden');
+        }
+    }
+    
+    // Event Listeners
+    prevMonthButton.addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        generateCalendar(currentMonth, currentYear);
+    });
+    
+    nextMonthButton.addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        generateCalendar(currentMonth, currentYear);
+    });
+    
+    addPeriodBtn.addEventListener('click', () => {
+        selectDate(new Date());
+    });
+    
+    viewHistoryBtn.addEventListener('click', viewHistory);
+    
+    // Close modals
+    closeModalButtons.forEach(button => {
+        button.addEventListener('click', () => {
             periodModal.classList.remove('active');
+            installModal.classList.remove('active');
         });
+    });
+    
+    // Confirm period addition
+    document.querySelector('#periodModal .confirm-btn').addEventListener('click', () => {
+        addPeriod(selectedDate);
+        periodModal.classList.remove('active');
+    });
+    
+    // Handle install confirmation
+    installConfirm.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+                localStorage.setItem('appInstalled', 'true');
+                installButton.classList.add('hidden');
+            }
+            deferredPrompt = null;
+            installModal.classList.remove('active');
+        }
+    });
+    
+    // PWA Installation
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
         
-        // Handle install confirmation
-        installConfirm.addEventListener('click', async () => {
+        // Show install button if app isn't installed
+        if (!localStorage.getItem('appInstalled')) {
+            installButton.classList.remove('hidden');
+        }
+        
+        installButton.addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     console.log('User accepted the install prompt');
+                    localStorage.setItem('appInstalled', 'true');
+                    installButton.classList.add('hidden');
                 }
                 deferredPrompt = null;
-                installModal.classList.remove('active');
             }
         });
-        
-        // PWA Installation
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installButton.classList.remove('hidden');
-            
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    }
-                    deferredPrompt = null;
-                }
+    });
+    
+    // Track if user dismissed install prompt
+    document.querySelector('#installModal .cancel-btn').addEventListener('click', () => {
+        localStorage.setItem('installDismissed', 'true');
+    });
+    
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+                console.log('SW registration failed: ', registrationError);
             });
         });
-        
-        // Track if user dismissed install prompt
-        document.querySelector('#installModal .cancel-btn').addEventListener('click', () => {
-            localStorage.setItem('installDismissed', 'true');
-        });
-        
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('SW registered: ', registration);
-                })
-                .catch(registrationError => {
-                    console.log('SW registration failed: ', registrationError);
-                });
-            });
+    }
+    
+    // Check if app was launched from installed state
+    window.addEventListener('load', () => {
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            localStorage.setItem('appInstalled', 'true');
+            installButton.classList.add('hidden');
         }
-        
-        // Initialize the app
-        init();
-    </script>
+    });
+    
+    // Initialize the app
+    init();
+</script>
 </body>
 </html>
