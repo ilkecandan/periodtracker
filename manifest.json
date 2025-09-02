@@ -1,13 +1,13 @@
 {
   "id": "/",
-  "name": "CycleSync Period Tracker",
-  "short_name": "CycleSync",
-  "description": "A comprehensive period tracking app with cycle phase information",
+  "name": "Tempest Period Tracker",
+  "short_name": "Tempest",
+  "description": "Track your menstrual cycle with predictions and insights",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ff6b6b",
+  "theme_color": "#e91e63",
   "orientation": "portrait-primary",
   "icons": [
     {
