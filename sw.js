@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cycle-sync-v1';
+const CACHE_NAME = 'tempest-tracker-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -41,7 +41,7 @@ self.addEventListener('fetch', event => {
   }
 
   // Static assets = cache-first
-  if (STATIC_ASSETS.some(asset => request.url.endsWith(asset))) {
+  if (STATIC_ASSETS.some(asset => request.url.includes(asset))) {
     event.respondWith(
       caches.match(request).then(res => res || fetch(request))
     );
