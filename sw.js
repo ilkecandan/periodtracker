@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tempest-tracker-v2';
+const CACHE_NAME = 'tempest-tracker-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -33,6 +33,7 @@ self.addEventListener('fetch', event => {
 
   if (request.method !== 'GET') return;
 
+  // Handle navigation requests
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(() => caches.match('/index.html'))
@@ -40,7 +41,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Static assets = cache-first
+  // Cache-first strategy for known static assets
   if (STATIC_ASSETS.some(asset => request.url.includes(asset))) {
     event.respondWith(
       caches.match(request).then(res => res || fetch(request))
@@ -48,7 +49,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Everything else = network-first with fallback
+  // Network-first strategy for everything else
   event.respondWith(
     fetch(request)
       .then(res => {
