@@ -7,56 +7,37 @@ const STATIC_ASSETS = [
   '/images/icon-512x512.png'
 ];
 
-// INSTALL: Cache static assets
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
-  self.skipWaiting();
+// Install Service Worker and Cache Files
+self.addEventListener("install", (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(FILES_TO_CACHE);
+        })
+    );
+    self.skipWaiting();
 });
 
-// ACTIVATE: Clean old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+// Activate Service Worker and Remove Old Caches
+self.addEventListener("activate", (event) => {
+    event.waitUntil(
+        caches.keys().then((keyList) => {
+            return Promise.all(
+                keyList.map((key) => {
+                    if (key !== CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            );
+        })
+    );
+    self.clients.claim();
 });
 
-// FETCH: Network-first for pages, cache-first for assets
-self.addEventListener('fetch', event => {
-  const { request } = event;
-
-  if (request.method !== 'GET') return;
-
-  // Handle navigation requests
-  if (request.mode === 'navigate') {
+// Fetch Files from Cache When Offline
+self.addEventListener("fetch", (event) => {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/index.html'))
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request);
+        })
     );
-    return;
-  }
-
-  // Cache-first strategy for known static assets
-  if (STATIC_ASSETS.some(asset => request.url.includes(asset))) {
-    event.respondWith(
-      caches.match(request).then(res => res || fetch(request))
-    );
-    return;
-  }
-
-  // Network-first strategy for everything else
-  event.respondWith(
-    fetch(request)
-      .then(res => {
-        const resClone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, resClone));
-        return res;
-      })
-      .catch(() => caches.match(request))
-  );
 });
