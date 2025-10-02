@@ -772,46 +772,62 @@
     }
     
     // Load period data from local storage
-    function loadPeriodData() {
-        const savedData = localStorage.getItem('tempestPeriodData');
-        if (savedData) {
-            periodData = JSON.parse(savedData);
-        } else {
-            // Default sample data if none exists
-            periodData = [
-                { start: new Date(2023, 8, 1).toISOString(), end: new Date(2023, 8, 5).toISOString() },
-                { start: new Date(2023, 7, 3).toISOString(), end: new Date(2023, 7, 7).toISOString() },
-                { start: new Date(2023, 6, 5).toISOString(), end: new Date(2023, 6, 9).toISOString() }
-            ];
-            savePeriodData();
-        }
+    const STORAGE_KEY = 'tempestPeriodData';
+const STORAGE_VERSION = 1;
+
+function loadPeriodData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      periodData = [];
+      return;
     }
+    const parsed = JSON.parse(raw);
+
+    // migrate if needed
+    if (parsed && parsed.version === STORAGE_VERSION && Array.isArray(parsed.entries)) {
+      periodData = parsed.entries.filter(v => v && v.start && v.end);
+    } else if (Array.isArray(parsed)) {
+      // legacy array format → migrate
+      periodData = parsed.filter(v => v && v.start && v.end);
+      savePeriodData(); // will rewrite in new schema
+    } else {
+      periodData = [];
+    }
+  } catch {
+    periodData = [];
+  }
+}
+
     
-    // Save period data to local storage
-    function savePeriodData() {
-        localStorage.setItem('tempestPeriodData', JSON.stringify(periodData));
-    }
-    
-    // Add a new period
-    function addPeriod(startDate) {
-        // For simplicity, assume 5-day period
-        const endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 4);
-        
-        periodData.unshift({
-            start: startDate.toISOString(),
-            end: endDate.toISOString()
-        });
-        
-        // Keep only the last 12 periods
-        if (periodData.length > 12) {
-            periodData = periodData.slice(0, 12);
-        }
-        
-        savePeriodData();
-        generateCalendar(currentMonth, currentYear);
-        updateCycleOverview();
-    }
+ function savePeriodData() {
+  // Sort newest first & limit
+  periodData = periodData
+    .filter(v => v && v.start && v.end)
+    .sort((a, b) => new Date(b.start) - new Date(a.start))
+    .slice(0, 24); // keep more history than 12
+
+  const payload = {
+    version: STORAGE_VERSION,
+    entries: periodData
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function addPeriod(startDate) {
+  const startIso = startDate.toISOString();
+  const already = periodData.some(p => p.start === startIso);
+  if (already) return;
+
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 4);
+
+  periodData.unshift({ start: startIso, end: endDate.toISOString() });
+  savePeriodData();
+  generateCalendar(currentMonth, currentYear);
+  updateCycleOverview();
+}
+
     
     // View period history
     function viewHistory() {
@@ -925,11 +941,18 @@
     document.querySelector('#installModal .cancel-btn').addEventListener('click', () => {
         localStorage.setItem('installDismissed', 'true');
     });
+
+        // Hide install button when the app gets installed
+window.addEventListener('appinstalled', () => {
+  localStorage.setItem('appInstalled', 'true');
+  installButton.classList.add('hidden');
+});
+
     
     // Service Worker Registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
+navigator.serviceWorker.register('./sw.js')
             .then(registration => {
                 console.log('SW registered: ', registration);
             })
