@@ -1,42 +1,67 @@
-const CACHE_NAME = 'tempest-tracker-v3';
+// sw.js
+// Version bump this when you change cached assets
+const CACHE_NAME = 'tempest-tracker-v4';
+
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/images/icon.png'
+  './',
+  './index.html',
+  './about.html',
+  './manifest.json',
+  './images/icon.png' // update once you add real 192/512 icons (see manifest step)
 ];
 
-// Install Service Worker and Cache Files
-self.addEventListener("install", (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(FILES_TO_CACHE);
-        })
-    );
-    self.skipWaiting();
+// INSTALL: pre-cache core assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+  );
+  self.skipWaiting();
 });
 
-// Activate Service Worker and Remove Old Caches
-self.addEventListener("activate", (event) => {
-    event.waitUntil(
-        caches.keys().then((keyList) => {
-            return Promise.all(
-                keyList.map((key) => {
-                    if (key !== CACHE_NAME) {
-                        return caches.delete(key);
-                    }
-                })
-            );
-        })
-    );
-    self.clients.claim();
+// ACTIVATE: cleanup old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => (k === CACHE_NAME ? null : caches.delete(k))))
+    )
+  );
+  self.clients.claim();
 });
 
-// Fetch Files from Cache When Offline
-self.addEventListener("fetch", (event) => {
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
-    );
+// FETCH: 
+// - navigation requests → network-first with offline fallback to cached index.html
+// - static assets → stale-while-revalidate
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+
+  // Handle SPA navigations
+  if (req.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(req);
+        const cache = await caches.open(CACHE_NAME);
+        cache.put('./index.html', fresh.clone());
+        return fresh;
+      } catch {
+        const cached = await caches.match('./index.html');
+        return cached || new Response('Offline', { status: 503 });
+      }
+    })());
+    return;
+  }
+
+  // Static assets: SWR
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(req);
+    const networkPromise = fetch(req).then((res) => {
+      // cache successful GETs
+      if (req.method === 'GET' && res && res.status === 200) {
+        cache.put(req, res.clone());
+      }
+      return res;
+    }).catch(() => cached);
+
+    return cached || networkPromise;
+  })());
 });
