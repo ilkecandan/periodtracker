@@ -6,7 +6,11 @@
     <meta name="theme-color" content="#e91e63">
     <meta name="description" content="About Tempest Period Tracker - A private, offline period tracking app">
     <title>About Tempest Period Tracker</title>
+    <link rel="manifest" href="/periodtracker/manifest.json">
+    <link rel="icon" href="/periodtracker/images/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="/periodtracker/images/icon-512.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
             --primary: #e91e63;
@@ -214,7 +218,7 @@
         <header>
             <div class="header-content">
                 <h1>About Tempest Tracker</h1>
-                <a href="index.html" class="back-btn">
+                <a href="/periodtracker/index.html" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             </div>
@@ -265,24 +269,32 @@
                 </ul>
             </div>
 
-            <a href="index.html" class="app-button">
+            <a href="/periodtracker/index.html" class="app-button">
                 <i class="fas fa-arrow-right"></i> Go to App
             </a>
         </main>
 
         <footer>
             <div class="footer-links">
-                <a href="https://tempestlabs.space" class="footer-link" target="_blank">
+                <a href="https://tempestlabs.space" class="footer-link" target="_blank" rel="noopener noreferrer">
                     <i class="fas fa-globe"></i> Website
                 </a>
-                <a href="https://buymeacoffee.com/ilkecandan" class="footer-link" target="_blank">
+                <a href="https://buymeacoffee.com/ilkecandan" class="footer-link" target="_blank" rel="noopener noreferrer">
                     <i class="fas fa-coffee"></i> Support
                 </a>
             </div>
             <div class="copyright">
-                &copy; 2023 Tempest Labs. All rights reserved.
+                &copy; 2025 Tempest Labs. All rights reserved.
             </div>
         </footer>
     </div>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/periodtracker/sw.js')
+          .then(() => console.log('[SW] registered on about.html'))
+          .catch(err => console.error('[SW] registration failed', err));
+      }
+    </script>
 </body>
 </html>
