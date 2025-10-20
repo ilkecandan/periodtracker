@@ -708,12 +708,19 @@
         const cycleStart = new Date(lastPeriod.start);
         const dayDiff = Math.floor((date - cycleStart) / (1000 * 60 * 60 * 24));
         
-        // Assuming a 28-day cycle
-        if (dayDiff >= 0 && dayDiff < 5) return 'menstrual';
-        if (dayDiff >= 5 && dayDiff < 13) return 'follicular';
-        if (dayDiff >= 13 && dayDiff < 16) return 'ovulation';
-        if (dayDiff >= 16 && dayDiff < 28) return 'luteal';
-        
+const cycleLen = getCycleLength();
+const periodLen = getPeriodLength();
+// crude but effective phase windowing based on cycle length
+const ovulationStart = Math.round(cycleLen * 0.45); // around day 13 of 28
+const ovulationLen = 3;
+const follicularEnd = ovulationStart - 1;
+const lutealStart = ovulationStart + ovulationLen;
+
+if (dayDiff >= 0 && dayDiff < periodLen) return 'menstrual';
+if (dayDiff >= periodLen && dayDiff <= follicularEnd) return 'follicular';
+if (dayDiff >= ovulationStart && dayDiff < ovulationStart + ovulationLen) return 'ovulation';
+if (dayDiff >= lutealStart && dayDiff < cycleLen) return 'luteal';
+
         return null;
     }
     
@@ -772,47 +779,86 @@
     }
     
     // Load period data from local storage
-    const STORAGE_KEY = 'tempestPeriodData';
-const STORAGE_VERSION = 1;
+const STORAGE_KEY = 'tempestPeriodData';
+const STORAGE_VERSION = 2; // bump for settings support
+
+const DEFAULT_SETTINGS = {
+  cycleLength: null,     // null = auto from history
+  periodLength: null     // null = auto from history
+};
+
+let settings = { ...DEFAULT_SETTINGS };
+
 
 function loadPeriodData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      periodData = [];
-      return;
-    }
+    if (!raw) { periodData = []; settings = { ...DEFAULT_SETTINGS }; return; }
     const parsed = JSON.parse(raw);
 
-    // migrate if needed
-    if (parsed && parsed.version === STORAGE_VERSION && Array.isArray(parsed.entries)) {
+    // v1 -> v2 migration support
+    if (parsed && parsed.version === 1 && Array.isArray(parsed.entries)) {
       periodData = parsed.entries.filter(v => v && v.start && v.end);
-    } else if (Array.isArray(parsed)) {
-      // legacy array format → migrate
-      periodData = parsed.filter(v => v && v.start && v.end);
-      savePeriodData(); // will rewrite in new schema
-    } else {
-      periodData = [];
+      settings = { ...DEFAULT_SETTINGS };
+      savePeriodData();
+      return;
     }
+
+    if (parsed && parsed.version === 2) {
+      periodData = Array.isArray(parsed.entries) ? parsed.entries : [];
+      settings = { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) };
+      return;
+    }
+
+    periodData = [];
+    settings = { ...DEFAULT_SETTINGS };
   } catch {
     periodData = [];
+    settings = { ...DEFAULT_SETTINGS };
   }
 }
 
     
- function savePeriodData() {
-  // Sort newest first & limit
-  periodData = periodData
-    .filter(v => v && v.start && v.end)
-    .sort((a, b) => new Date(b.start) - new Date(a.start))
-    .slice(0, 24); // keep more history than 12
-
+function savePeriodData() {
   const payload = {
     version: STORAGE_VERSION,
-    entries: periodData
+    entries: periodData,
+    settings
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
+
+        function averageCycleLength() {
+  if (periodData.length < 2) return null;
+  // use start->start deltas
+  const starts = periodData
+    .map(p => new Date(p.start))
+    .sort((a,b) => a - b);
+  const deltas = [];
+  for (let i = 1; i < starts.length; i++) {
+    deltas.push((starts[i] - starts[i-1]) / (1000*60*60*24));
+  }
+  if (!deltas.length) return null;
+  return Math.round(deltas.reduce((a,b)=>a+b,0) / deltas.length);
+}
+
+function averagePeriodLength() {
+  if (!periodData.length) return null;
+  const lens = periodData.map(p => {
+    const s = new Date(p.start), e = new Date(p.end);
+    return Math.max(1, Math.round((e - s)/(1000*60*60*24)) + 1);
+  });
+  return Math.round(lens.reduce((a,b)=>a+b,0) / lens.length);
+}
+
+function getCycleLength() {
+  return settings.cycleLength || averageCycleLength() || 28;
+}
+function getPeriodLength() {
+  return settings.periodLength || averagePeriodLength() || 5;
+}
+
+        
 
 function addPeriod(startDate) {
   const startIso = startDate.toISOString();
